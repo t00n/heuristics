@@ -193,6 +193,22 @@ void print_instance(int level){
 
 }
 
+int solution_cost() {
+  int total = 0;
+  for (int i = 0; i < nsubset_cover; ++i) {
+    total += cost[subset_cover[i]];
+  }
+  return total;
+}
+
+void print_solution() {
+  printf("Solution cost : %d\n", solution_cost());
+  printf("Solution : %d subsets\n", nsubset_cover);
+  for (int i = 0; i < nsubset_cover; ++i) {
+    printf("%d, ", subset_cover[i]);
+  }
+}
+
 /*** Use this function to initialize other variables of the algorithms **/
 void initialize(){
   subset_cover = mymalloc(n); // because n is the maximum size if the solution takes all subsets
@@ -235,14 +251,6 @@ void ch1_algo() {
   free(elements_picked);
 }
 
-int solution_cost() {
-  int total = 0;
-  for (int i = 0; i < nsubset_cover; ++i) {
-    total += cost[subset_cover[i]];
-  }
-  return total;
-}
-
 // is_admissible_solution() {
 //   for (int i = 0; i < m; ++i) {
 //     int elem = 
@@ -268,11 +276,7 @@ int main(int argc, char *argv[]) {
   if (ch1) {
     ch1_algo();
   }
-  printf("Solution cost : %d\n", solution_cost());
-  printf("Solution : %d subsets\n", nsubset_cover);
-  for (int i = 0; i < nsubset_cover; ++i) {
-    printf("%d, ", subset_cover[i]);
-  }
+  print_solution();
   finalize();
   return EXIT_SUCCESS;
 }
