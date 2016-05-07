@@ -53,6 +53,8 @@ int fx;           /* sum of the cost of the subsets selected in the solution (ca
 /**       or when a complete solution is modified*/
 int *subset_cover;   /* subset_subsetver[i] selected subsets that cover element i */
 int nsubset_cover;   /* number of selected subsets that cover element i */
+bool * elements_picked; /* elements already covered by subset_cover */
+int nelements_picked; /* number of previous */
 
 void usage(){
     printf("\nUSAGE: lsscp [param_name, param_value] [options]...\n");
@@ -213,25 +215,27 @@ void print_solution() {
 void initialize(){
   subset_cover = mymalloc(n); // because n is the maximum size if the solution takes all subsets
   nsubset_cover = 0;
+  elements_picked = mymalloc(m);
+  nelements_picked = 0;
+}
+
+int random_pick_element() {
+  int elem;
+  do {
+     elem = rand() % m;
+  }
+  while (is_in_array(elem, elements_picked, nelements_picked));
+  elements_picked[nelements_picked++] = elem;
+  return elem;
+}
+
+void add_subset_elems(int subset) {
+  for (int i = 0; i < nelement[subset]; ++i) {
+    elements_picked[nelements_picked++] = element[subset][i];
+  }
 }
 
 void ch1_algo() {
-  bool * elements_picked = mymalloc(m);
-  int nelements_picked = 0;
-  int pick_element() {
-    int elem;
-    do {
-       elem = rand() % m;
-    }
-    while (is_in_array(elem, elements_picked, nelements_picked));
-    elements_picked[nelements_picked++] = elem;
-    return elem;
-  }
-  void add_subset_elems(int subset) {
-    for (int i = 0; i < nelement[subset]; ++i) {
-      elements_picked[nelements_picked++] = element[subset][i];
-    }
-  }
   int pick_subset(int elem) {
     int * available_subsets = subset[elem];
     int navailable_subsets = nsubset[elem];
@@ -240,15 +244,36 @@ void ch1_algo() {
       subset = available_subsets[rand() % navailable_subsets];
     }
     while (is_in_array(subset, subset_cover, nsubset_cover));
-    add_subset_elems(subset);
     return subset;
   }
   while (nelements_picked < m) {
-    int elem = pick_element();
+    int elem = random_pick_element();
     int subset = pick_subset(elem);
     subset_cover[nsubset_cover++] = subset;
+    add_subset_elems(subset);
   }
-  free(elements_picked);
+}
+
+void ch2_algo() {
+  int pick_subset(int elem) {
+    int * available_subsets = subset[elem];
+    int navailable_subsets = nsubset[elem];
+    int subset = available_subsets[0];
+    int min_cost = cost[subset];
+    for (int i = 1; i < navailable_subsets; ++i) {
+      if (cost[available_subsets[i]] < min_cost) {
+        min_cost = cost[available_subsets[i]];
+        subset = available_subsets[i];
+      }
+    }
+    return subset;
+  }
+  while (nelements_picked < m) {
+    int elem = random_pick_element();
+    int subset = pick_subset(elem);
+    subset_cover[nsubset_cover++] = subset;
+    add_subset_elems(subset);
+  }
 }
 
 // is_admissible_solution() {
@@ -265,6 +290,7 @@ void finalize(){
   free((void *) nsubset );
   free((void *) cost );
   free(subset_cover);
+  free(elements_picked);
 }
 
 int main(int argc, char *argv[]) {
@@ -275,6 +301,9 @@ int main(int argc, char *argv[]) {
   initialize();
   if (ch1) {
     ch1_algo();
+  }
+  else if (ch2) {
+    ch2_algo();
   }
   print_solution();
   finalize();
