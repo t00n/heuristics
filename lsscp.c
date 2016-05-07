@@ -216,17 +216,14 @@ int random_pick_element() {
   do {
      elem = rand() % m;
   }
-  while (is_in_array(elem, elements_picked, nelements_picked));
+  while (set_member(elem, elements_picked, nelements_picked));
   elements_picked[nelements_picked++] = elem;
   return elem;
 }
 
 void add_subset_elems(int subset) {
   for (int i = 0; i < nelement[subset]; ++i) {
-    int elem = element[subset][i];
-    if (! is_in_array(elem, elements_picked, nelements_picked)) {
-      elements_picked[nelements_picked++] = elem;
-    }
+    nelements_picked = set_add(element[subset][i], elements_picked, nelements_picked);
   }
 }
 
@@ -238,7 +235,7 @@ void ch1_algo() {
     do {
       subset = available_subsets[rand() % navailable_subsets];
     }
-    while (is_in_array(subset, subset_cover, nsubset_cover));
+    while (set_member(subset, subset_cover, nsubset_cover));
     return subset;
   }
   while (nelements_picked < m) {

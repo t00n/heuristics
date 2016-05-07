@@ -17,11 +17,18 @@ void error_reading_file(char *text){
   exit( EXIT_FAILURE );
 }
 
-bool is_in_array(int elem, int* array, int narray) {
+bool set_member(int elem, int* array, int narray) {
     for (int i = 0; i < narray; i++) {
         if (array[i] == elem) {
             return true;
         }
     }
     return false;
+}
+
+int set_add(int elem, int* array, int narray) {
+    if (! set_member(elem, array, narray)) {
+      array[narray++] = elem;
+    }
+    return narray;
 }
