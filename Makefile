@@ -10,7 +10,7 @@ VER     = `date +%Y%m%d`
 
 ### command and flags ###
 # uncomment when debugging
-#DEBUG  = -ggdb -pg # -lefence
+# DEBUG  = -ggdb -pg # -lefence
 
 # common (*.o)
 LD      = gcc

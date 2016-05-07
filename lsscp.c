@@ -37,11 +37,11 @@ int n;            /* number of subsets */
 int **element;        /* element[i] elements that are covered by subsets i */
 int **subset;        /* subset[i] subsets that cover element i */
 int *nsubset;        /* nsubset[i] number of subsets that cover element i */
-int *nelement;        /* nelement[i] number of elements that are covered by subsets i */
-int *cost;        /* cost[i] cost of subsets i  */
+int *nelement;        /* nelement[i] number of elements that are covered by subset i */
+int *cost;        /* cost[i] cost of subset i  */
 
 /** Solution variables **/
-int *x;           /* x[i] 0,1 if subsets i is selected */
+int *x;           /* x[i] 0,1 if subset i is selected */
 int *y;           /* y[i] 0,1 if element i covered by the actual solution */
 /** Note: Use incremental updates for the solution **/
 int fx;           /* sum of the cost of the subsets selected in the solution (can be partial) */ 
@@ -53,7 +53,7 @@ int fx;           /* sum of the cost of the subsets selected in the solution (ca
 /**       or when a complete solution is modified*/
 int *subset_cover;   /* subset_subsetver[i] selected subsets that cover element i */
 int nsubset_cover;   /* number of selected subsets that cover element i */
-bool * elements_picked; /* elements already covered by subset_cover */
+int *elements_picked; /* elements already covered by subset_cover */
 int nelements_picked; /* number of previous */
 
 void usage(){
@@ -211,14 +211,6 @@ void print_solution() {
   }
 }
 
-/*** Use this function to initialize other variables of the algorithms **/
-void initialize(){
-  subset_cover = mymalloc(n); // because n is the maximum size if the solution takes all subsets
-  nsubset_cover = 0;
-  elements_picked = mymalloc(m);
-  nelements_picked = 0;
-}
-
 int random_pick_element() {
   int elem;
   do {
@@ -231,7 +223,10 @@ int random_pick_element() {
 
 void add_subset_elems(int subset) {
   for (int i = 0; i < nelement[subset]; ++i) {
-    elements_picked[nelements_picked++] = element[subset][i];
+    int elem = element[subset][i];
+    if (! is_in_array(elem, elements_picked, nelements_picked)) {
+      elements_picked[nelements_picked++] = elem;
+    }
   }
 }
 
@@ -282,15 +277,23 @@ void ch2_algo() {
 //   }
 // }
 
+/*** Use this function to initialize other variables of the algorithms **/
+void initialize(){
+  subset_cover = mymalloc(n * sizeof(int)); // because n is the maximum size if the solution takes all subsets
+  nsubset_cover = 0;
+  elements_picked = mymalloc(m * sizeof(int));
+  nelements_picked = 0;
+}
+// 
 /*** Use this function to finalize execution */
 void finalize(){
-  free((void **) element );
-  free((void **) subset );
-  free((void *) nelement );
-  free((void *) nsubset );
-  free((void *) cost );
-  free(subset_cover);
+  free(element);
+  free(subset);
+  free(nelement);
+  free(nsubset);
+  free(cost);
   free(elements_picked);
+  free(subset_cover);
 }
 
 int main(int argc, char *argv[]) {
