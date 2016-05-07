@@ -19,6 +19,7 @@
 #include <time.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "utils.c"
 
@@ -32,10 +33,10 @@ int ch1=0, ch2=0, bi=0, fi=0, re=0;
 
 /** Instance static variables **/
 int m;            /* number of elements */
-int n;            /* number of subsetss */
+int n;            /* number of subsets */
 int **element;        /* element[i] elements that are covered by subsets i */
-int **subset;        /* subset[i] subsetss that cover element i */
-int *nsubset;        /* nsubset[i] number of subsetss that cover element i */
+int **subset;        /* subset[i] subsets that cover element i */
+int *nsubset;        /* nsubset[i] number of subsets that cover element i */
 int *nelement;        /* nelement[i] number of elements that are covered by subsets i */
 int *cost;        /* cost[i] cost of subsets i  */
 
@@ -43,15 +44,15 @@ int *cost;        /* cost[i] cost of subsets i  */
 int *x;           /* x[i] 0,1 if subsets i is selected */
 int *y;           /* y[i] 0,1 if element i covered by the actual solution */
 /** Note: Use incremental updates for the solution **/
-int fx;           /* sum of the cost of the subsetss selected in the solution (can be partial) */ 
+int fx;           /* sum of the cost of the subsets selected in the solution (can be partial) */ 
 
-/** Dinamic variables **/
-/** Note: use dinamic variables to make easier the construction and modification of solutions. **/
+/** Dynamic variables **/
+/** Note: use dynamic variables to make easier the construction and modification of solutions. **/
 /**       these are just examples of useful variables.                                         **/
 /**       these variables need to be updated eveytime a subsets is added to a partial solution  **/
 /**       or when a complete solution is modified*/
-int *subset_cover;   /* subset_subsetver[i] selected subsetss that cover element i */
-int nsubset_cover;   /* number of selected subsetss that cover element i */
+int *subset_cover;   /* subset_subsetver[i] selected subsets that cover element i */
+int nsubset_cover;   /* number of selected subsets that cover element i */
 
 void usage(){
     printf("\nUSAGE: lsscp [param_name, param_value] [options]...\n");
@@ -120,16 +121,16 @@ void read_scp(char *filename) {
   
   if (fscanf(fp,"%d",&m)!=1)   /* number of elements */
     error_reading_file("ERROR: there was an error reading instance file.");
-  if (fscanf(fp,"%d",&n)!=1)   /* number of subsetss */
+  if (fscanf(fp,"%d",&n)!=1)   /* number of subsets */
     error_reading_file("ERROR: there was an error reading instance file.");
   
-  /* Cost of the n subsetss */
+  /* Cost of the n subsets */
   cost = (int *) mymalloc(n*sizeof(int));
   for (j=0; j<n; j++)
     if (fscanf(fp,"%d",&cost[j]) !=1) 
       error_reading_file("ERROR: there was an error reading instance file."); 
     
-  /* Info of subsetss that cover each element */
+  /* Info of subsets that cover each element */
   subset  = (int **) mymalloc(m*sizeof(int *));
   nsubset = (int *) mymalloc(m*sizeof(int));
   for (i=0; i<m; i++) {
@@ -194,9 +195,59 @@ void print_instance(int level){
 
 /*** Use this function to initialize other variables of the algorithms **/
 void initialize(){
-
-
+  subset_cover = mymalloc(n); // because n is the maximum size if the solution takes all subsets
+  nsubset_cover = 0;
 }
+
+void ch1_algo() {
+  bool * elements_picked = mymalloc(m);
+  int nelements_picked = 0;
+  int pick_element() {
+    int elem;
+    do {
+       elem = rand() % m;
+    }
+    while (is_in_array(elem, elements_picked, nelements_picked));
+    elements_picked[nelements_picked++] = elem;
+    return elem;
+  }
+  void add_subset_elems(int subset) {
+    for (int i = 0; i < nelement[subset]; ++i) {
+      elements_picked[nelements_picked++] = element[subset][i];
+    }
+  }
+  int pick_subset(int elem) {
+    int * available_subsets = subset[elem];
+    int navailable_subsets = nsubset[elem];
+    int subset;
+    do {
+      subset = available_subsets[rand() % navailable_subsets];
+    }
+    while (is_in_array(subset, subset_cover, nsubset_cover));
+    add_subset_elems(subset);
+    return subset;
+  }
+  while (nelements_picked < m) {
+    int elem = pick_element();
+    int subset = pick_subset(elem);
+    subset_cover[nsubset_cover++] = subset;
+  }
+  free(elements_picked);
+}
+
+int solution_cost() {
+  int total = 0;
+  for (int i = 0; i < nsubset_cover; ++i) {
+    total += cost[subset_cover[i]];
+  }
+  return total;
+}
+
+// is_admissible_solution() {
+//   for (int i = 0; i < m; ++i) {
+//     int elem = 
+//   }
+// }
 
 /*** Use this function to finalize execution */
 void finalize(){
@@ -205,6 +256,7 @@ void finalize(){
   free((void *) nelement );
   free((void *) nsubset );
   free((void *) cost );
+  free(subset_cover);
 }
 
 int main(int argc, char *argv[]) {
@@ -212,6 +264,15 @@ int main(int argc, char *argv[]) {
   srand(seed); /*set seed */
   read_scp(scp_file);
   print_instance(1);
+  initialize();
+  if (ch1) {
+    ch1_algo();
+  }
+  printf("Solution cost : %d\n", solution_cost());
+  printf("Solution : %d subsets\n", nsubset_cover);
+  for (int i = 0; i < nsubset_cover; ++i) {
+    printf("%d, ", subset_cover[i]);
+  }
   finalize();
   return EXIT_SUCCESS;
 }
