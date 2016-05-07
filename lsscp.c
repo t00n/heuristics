@@ -5,12 +5,12 @@
 /**                                 **/
 /*************************************/
 /** For this code:                  **/
-/**   rows = elements               **/
-/**   cols = subsets                **/
+/**   elements = elements               **/
+/**   subsets = subsets                **/
 /*************************************/
 
 /** Code implemented for Heuritics optimization class by:  **/
-/** <add_your_name_here>                                   **/
+/** Antoine CARPENTIER                                     **/
 
 /** Note: Remember to keep your code in order and properly commented. **/
 
@@ -31,27 +31,27 @@ char *output_file="output.txt";
 int ch1=0, ch2=0, bi=0, fi=0, re=0; 
 
 /** Instance static variables **/
-int m;            /* number of rows */
-int n;            /* number of columns */
-int **row;        /* row[i] rows that are covered by column i */
-int **col;        /* col[i] columns that cover row i */
-int *ncol;        /* ncol[i] number of columns that cover row i */
-int *nrow;        /* nrow[i] number of rows that are covered by column i */
-int *cost;        /* cost[i] cost of column i  */
+int m;            /* number of elements */
+int n;            /* number of subsetss */
+int **element;        /* element[i] elements that are covered by subsets i */
+int **subset;        /* subset[i] subsetss that cover element i */
+int *nsubset;        /* nsubset[i] number of subsetss that cover element i */
+int *nelement;        /* nelement[i] number of elements that are covered by subsets i */
+int *cost;        /* cost[i] cost of subsets i  */
 
 /** Solution variables **/
-int *x;           /* x[i] 0,1 if column i is selected */
-int *y;           /* y[i] 0,1 if row i covered by the actual solution */
+int *x;           /* x[i] 0,1 if subsets i is selected */
+int *y;           /* y[i] 0,1 if element i covered by the actual solution */
 /** Note: Use incremental updates for the solution **/
-int fx;           /* sum of the cost of the columns selected in the solution (can be partial) */ 
+int fx;           /* sum of the cost of the subsetss selected in the solution (can be partial) */ 
 
 /** Dinamic variables **/
 /** Note: use dinamic variables to make easier the construction and modification of solutions. **/
 /**       these are just examples of useful variables.                                         **/
-/**       these variables need to be updated eveytime a column is added to a partial solution  **/
+/**       these variables need to be updated eveytime a subsets is added to a partial solution  **/
 /**       or when a complete solution is modified*/
-int *col_cover;   /* col_colver[i] selected columns that cover row i */
-int ncol_cover;   /* number of selected columns that cover row i */
+int *subset_cover;   /* subset_subsetver[i] selected subsetss that cover element i */
+int nsubset_cover;   /* number of selected subsetss that cover element i */
 
 void usage(){
     printf("\nUSAGE: lsscp [param_name, param_value] [options]...\n");
@@ -118,48 +118,48 @@ void read_scp(char *filename) {
   int *k;
   FILE *fp = fopen(filename, "r" );
   
-  if (fscanf(fp,"%d",&m)!=1)   /* number of rows */
+  if (fscanf(fp,"%d",&m)!=1)   /* number of elements */
     error_reading_file("ERROR: there was an error reading instance file.");
-  if (fscanf(fp,"%d",&n)!=1)   /* number of columns */
+  if (fscanf(fp,"%d",&n)!=1)   /* number of subsetss */
     error_reading_file("ERROR: there was an error reading instance file.");
   
-  /* Cost of the n columns */
+  /* Cost of the n subsetss */
   cost = (int *) mymalloc(n*sizeof(int));
   for (j=0; j<n; j++)
     if (fscanf(fp,"%d",&cost[j]) !=1) 
       error_reading_file("ERROR: there was an error reading instance file."); 
     
-  /* Info of columns that cover each row */
-  col  = (int **) mymalloc(m*sizeof(int *));
-  ncol = (int *) mymalloc(m*sizeof(int));
+  /* Info of subsetss that cover each element */
+  subset  = (int **) mymalloc(m*sizeof(int *));
+  nsubset = (int *) mymalloc(m*sizeof(int));
   for (i=0; i<m; i++) {
-    if (fscanf(fp,"%d",&ncol[i])!=1)
+    if (fscanf(fp,"%d",&nsubset[i])!=1)
       error_reading_file("ERROR: there was an error reading instance file.");
-    col[i] = (int *) mymalloc(ncol[i]*sizeof(int));
-    for (h=0; h<ncol[i]; h++) {
-      if( fscanf(fp,"%d",&col[i][h])!=1 )
+    subset[i] = (int *) mymalloc(nsubset[i]*sizeof(int));
+    for (h=0; h<nsubset[i]; h++) {
+      if( fscanf(fp,"%d",&subset[i][h])!=1 )
         error_reading_file("ERROR: there was an error reading instance file."); 
-      col[i][h]--;
+      subset[i][h]--;
     }
   }
   
-  /* Info of rows that are covered by each column */
-  row  = (int **) mymalloc(n*sizeof(int *));
-  nrow = (int *) mymalloc(n*sizeof(int));
+  /* Info of elements that are covered by each subsets */
+  element  = (int **) mymalloc(n*sizeof(int *));
+  nelement = (int *) mymalloc(n*sizeof(int));
   k    = (int *) mymalloc(n*sizeof(int));
-  for (j=0; j<n; j++) nrow[j]=0;
+  for (j=0; j<n; j++) nelement[j]=0;
   for (i=0; i<m; i++) {
-    for (h=0; h<ncol[i]; h++)
-      nrow[col[i][h]]++;
+    for (h=0; h<nsubset[i]; h++)
+      nelement[subset[i][h]]++;
   }
   for (j=0; j<n; j++) {
-    row[j] = (int *) mymalloc(nrow[j]*sizeof(int));
+    element[j] = (int *) mymalloc(nelement[j]*sizeof(int));
     k[j]   = 0;
   }
   for (i=0;i<m;i++) {
-    for (h=0;h<ncol[i];h++) {
-      row[col[i][h]][k[col[i][h]]] = i;
-      k[col[i][h]]++;
+    for (h=0;h<nsubset[i];h++) {
+      element[subset[i][h]][k[subset[i][h]]] = i;
+      k[subset[i][h]]++;
     }
   }
   free((void *)k);
@@ -174,17 +174,17 @@ void print_instance(int level){
   printf("  PROBLEM SIZE\t m = %d\t n = %d\n", m, n);
   
   if(level >=1){
-    printf("  COLUMN COST:\n");
+    printf("  SUBSET COST:\n");
     for(i=0; i<n;i++)
       printf("%d ",cost[i]);
     printf("\n\n");
-    printf("  NUMBER OF ROWS COVERED BY COLUMN 1 is %d\n", nrow[0] );
-    for(i=0; i<nrow[0];i++)
-      printf("%d ", row[0][i]);
+    printf("  NUMBER OF ELEMENTS COVERED BY SUBSET 1 is %d\n", nelement[0] );
+    for(i=0; i<nelement[0];i++)
+      printf("%d ", element[0][i]);
     printf("\n");
-    printf("  NUMBER OF COLUMNS COVERING ROW 1 is %d\n", ncol[0] );
-    for(i=0; i<ncol[0];i++)
-      printf("%d ", col[0][i]);
+    printf("  NUMBER OF SUBSETS COVERING ELEMENT 1 is %d\n", nsubset[0] );
+    for(i=0; i<nsubset[0];i++)
+      printf("%d ", subset[0][i]);
     printf("\n");
   }
  
@@ -200,10 +200,10 @@ void initialize(){
 
 /*** Use this function to finalize execution */
 void finalize(){
-  free((void **) row );
-  free((void **) col );
-  free((void *) nrow );
-  free((void *) ncol );
+  free((void **) element );
+  free((void **) subset );
+  free((void *) nelement );
+  free((void *) nsubset );
   free((void *) cost );
 }
 
@@ -211,7 +211,7 @@ int main(int argc, char *argv[]) {
   read_parameters(argc, argv);
   srand(seed); /*set seed */
   read_scp(scp_file);
-  print_instance(0);
+  print_instance(1);
   finalize();
   return EXIT_SUCCESS;
 }
