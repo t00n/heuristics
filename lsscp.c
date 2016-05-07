@@ -203,7 +203,28 @@ int solution_cost() {
   return total;
 }
 
+// bool is_admissible_solution() {
+//   bool * all_elems = mymalloc(m * sizeof(bool));
+//   for (int i = 0; i < nsubset_cover; ++i) {
+//     int subset_i = subset_cover[i];
+//     for (int j = 0; j < nsubset[subset_i]; ++j) {
+//       int elem = element[subset_i][j];
+//       all_elems[elem] = true;
+//     }
+//   }
+//   bool res = true;
+//   for (int i = 0; i < m; ++i) {
+//     if (all_elems[i] == false) {
+//       res = false;
+//       break;
+//     }
+//   }
+//   free(all_elems);
+//   return res;
+// }
+
 void print_solution() {
+  // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
   printf("Solution cost : %d\n", solution_cost());
   printf("Solution : %d subsets\n", nsubset_cover);
   for (int i = 0; i < nsubset_cover; ++i) {
@@ -267,12 +288,6 @@ void ch2_algo() {
     add_subset_elems(subset);
   }
 }
-
-// is_admissible_solution() {
-//   for (int i = 0; i < m; ++i) {
-//     int elem = 
-//   }
-// }
 
 /*** Use this function to initialize other variables of the algorithms **/
 void initialize(){
