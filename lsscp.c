@@ -248,45 +248,38 @@ void add_subset_elems(int subset) {
   }
 }
 
-void ch1_algo() {
-  int pick_subset(int elem) {
-    int * available_subsets = subset[elem];
-    int navailable_subsets = nsubset[elem];
-    int subset;
-    do {
-      subset = available_subsets[rand() % navailable_subsets];
-    }
-    while (set_member(subset, subset_cover, nsubset_cover));
-    return subset;
-  }
+void construction_search(int (*pick_elem)(), int (*pick_subset)(int)) {
   while (nelements_picked < m) {
-    int elem = random_pick_element();
+    int elem = pick_elem();
     int subset = pick_subset(elem);
     subset_cover[nsubset_cover++] = subset;
     add_subset_elems(subset);
   }
 }
 
-void ch2_algo() {
-  int pick_subset(int elem) {
-    int * available_subsets = subset[elem];
-    int navailable_subsets = nsubset[elem];
-    int subset = available_subsets[0];
-    int min_cost = cost[subset];
-    for (int i = 1; i < navailable_subsets; ++i) {
-      if (cost[available_subsets[i]] < min_cost) {
-        min_cost = cost[available_subsets[i]];
-        subset = available_subsets[i];
-      }
+int random_pick_subset(int elem) {
+  int * available_subsets = subset[elem];
+  int navailable_subsets = nsubset[elem];
+  int subset;
+  do {
+    subset = available_subsets[rand() % navailable_subsets];
+  }
+  while (set_member(subset, subset_cover, nsubset_cover));
+  return subset;
+}
+
+int greedy_pick_subset(int elem) {
+  int * available_subsets = subset[elem];
+  int navailable_subsets = nsubset[elem];
+  int subset = available_subsets[0];
+  int min_cost = cost[subset];
+  for (int i = 1; i < navailable_subsets; ++i) {
+    if (cost[available_subsets[i]] < min_cost) {
+      min_cost = cost[available_subsets[i]];
+      subset = available_subsets[i];
     }
-    return subset;
   }
-  while (nelements_picked < m) {
-    int elem = random_pick_element();
-    int subset = pick_subset(elem);
-    subset_cover[nsubset_cover++] = subset;
-    add_subset_elems(subset);
-  }
+  return subset;
 }
 
 /*** Use this function to initialize other variables of the algorithms **/
@@ -315,10 +308,10 @@ int main(int argc, char *argv[]) {
   print_instance(1);
   initialize();
   if (ch1) {
-    ch1_algo();
+    construction_search(random_pick_element, random_pick_subset);
   }
   else if (ch2) {
-    ch2_algo();
+    construction_search(random_pick_element, greedy_pick_subset);
   }
   print_solution();
   finalize();
