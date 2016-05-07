@@ -168,70 +168,6 @@ void read_scp(char *filename) {
   free((void *)k);
 }
 
-/*** Use level>=1 to print more info (check the correct reading) */ 
-void print_instance(int level){
-  int i;
-  
-  printf("**********************************************\n");
-  printf("  SCP INSTANCE: %s\n", scp_file);
-  printf("  PROBLEM SIZE\t m = %d\t n = %d\n", m, n);
-  
-  if(level >=1){
-    printf("  SUBSET COST:\n");
-    for(i=0; i<n;i++)
-      printf("%d ",cost[i]);
-    printf("\n\n");
-    printf("  NUMBER OF ELEMENTS COVERED BY SUBSET 1 is %d\n", nelement[0] );
-    for(i=0; i<nelement[0];i++)
-      printf("%d ", element[0][i]);
-    printf("\n");
-    printf("  NUMBER OF SUBSETS COVERING ELEMENT 1 is %d\n", nsubset[0] );
-    for(i=0; i<nsubset[0];i++)
-      printf("%d ", subset[0][i]);
-    printf("\n");
-  }
- 
-  printf("**********************************************\n\n");
-
-}
-
-int solution_cost() {
-  int total = 0;
-  for (int i = 0; i < nsubset_cover; ++i) {
-    total += cost[subset_cover[i]];
-  }
-  return total;
-}
-
-// bool is_admissible_solution() {
-//   bool * all_elems = mymalloc(m * sizeof(bool));
-//   for (int i = 0; i < nsubset_cover; ++i) {
-//     int subset_i = subset_cover[i];
-//     for (int j = 0; j < nsubset[subset_i]; ++j) {
-//       int elem = element[subset_i][j];
-//       all_elems[elem] = true;
-//     }
-//   }
-//   bool res = true;
-//   for (int i = 0; i < m; ++i) {
-//     if (all_elems[i] == false) {
-//       res = false;
-//       break;
-//     }
-//   }
-//   free(all_elems);
-//   return res;
-// }
-
-void print_solution() {
-  // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
-  printf("Solution cost : %d\n", solution_cost());
-  printf("Solution : %d subsets\n", nsubset_cover);
-  for (int i = 0; i < nsubset_cover; ++i) {
-    printf("%d, ", subset_cover[i]);
-  }
-}
-
 int random_pick_element() {
   int elem;
   do {
@@ -282,8 +218,83 @@ int greedy_pick_subset(int elem) {
   return subset;
 }
 
+void compute_solution_variables() {
+  for (int i = 0; i < n; ++i) {
+    x[i] = 0;
+  }
+  for (int i = 0; i < nsubset_cover; ++i) {
+    x[subset_cover[i]] = 1;
+    fx += cost[subset_cover[i]];
+  }
+  for (int i = 0; i < m; ++i) {
+    y[i] = 0;
+  }
+  for (int i = 0; i < nelements_picked; ++i) {
+    y[elements_picked[i]] = 1;
+  }
+}
+
+// bool is_admissible_solution() {
+//   bool * all_elems = mymalloc(m * sizeof(bool));
+//   for (int i = 0; i < nsubset_cover; ++i) {
+//     int subset_i = subset_cover[i];
+//     for (int j = 0; j < nsubset[subset_i]; ++j) {
+//       int elem = element[subset_i][j];
+//       all_elems[elem] = true;
+//     }
+//   }
+//   bool res = true;
+//   for (int i = 0; i < m; ++i) {
+//     if (all_elems[i] == false) {
+//       res = false;
+//       break;
+//     }
+//   }
+//   free(all_elems);
+//   return res;
+// }
+
+/*** Use level>=1 to print more info (check the correct reading) */ 
+void print_instance(int level){
+  int i;
+  
+  printf("**********************************************\n");
+  printf("  SCP INSTANCE: %s\n", scp_file);
+  printf("  PROBLEM SIZE\t m = %d\t n = %d\n", m, n);
+  
+  if(level >=1){
+    printf("  SUBSET COST:\n");
+    for(i=0; i<n;i++)
+      printf("%d ",cost[i]);
+    printf("\n\n");
+    printf("  NUMBER OF ELEMENTS COVERED BY SUBSET 1 is %d\n", nelement[0] );
+    for(i=0; i<nelement[0];i++)
+      printf("%d ", element[0][i]);
+    printf("\n");
+    printf("  NUMBER OF SUBSETS COVERING ELEMENT 1 is %d\n", nsubset[0] );
+    for(i=0; i<nsubset[0];i++)
+      printf("%d ", subset[0][i]);
+    printf("\n");
+  }
+ 
+  printf("**********************************************\n\n");
+
+}
+
+void print_solution() {
+  // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
+  printf("Solution cost : %d\n", fx);
+  printf("Solution : %d subsets\n", nsubset_cover);
+  for (int i = 0; i < nsubset_cover; ++i) {
+    printf("%d, ", subset_cover[i]);
+  }
+}
+
 /*** Use this function to initialize other variables of the algorithms **/
 void initialize(){
+  x = mymalloc(n * sizeof(int));
+  y = mymalloc(m * sizeof(int));
+  fx = 0;
   subset_cover = mymalloc(n * sizeof(int)); // because n is the maximum size if the solution takes all subsets
   nsubset_cover = 0;
   elements_picked = mymalloc(m * sizeof(int));
@@ -299,6 +310,8 @@ void finalize(){
   free(cost);
   free(elements_picked);
   free(subset_cover);
+  free(y);
+  free(x);
 }
 
 int main(int argc, char *argv[]) {
@@ -313,6 +326,7 @@ int main(int argc, char *argv[]) {
   else if (ch2) {
     construction_search(random_pick_element, greedy_pick_subset);
   }
+  compute_solution_variables();
   print_solution();
   finalize();
   return EXIT_SUCCESS;
