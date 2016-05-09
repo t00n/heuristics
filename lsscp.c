@@ -210,17 +210,18 @@ int random_pick_subset(int elem) {
 }
 
 int greedy_pick_subset(cost_function, alist) 
-  int (*cost_function)(int);
+  float (*cost_function)(int);
   va_alist alist;
 {
   va_start_int(alist);
   int elem = va_arg_int(alist);
-  printf("%p %d\n", cost_function, elem);
   int * available_subsets = subset[elem];
   int navailable_subsets = nsubset[elem];
   int subset = available_subsets[0];
-  int min_cost = cost_function(subset);
+  float min_cost = cost_function(subset);
+  printf("%f\n", min_cost);
   for (int i = 1; i < navailable_subsets; ++i) {
+    printf("%d %f\n", cost[available_subsets[i]], min_cost);
     if (cost[available_subsets[i]] < min_cost) {
       min_cost = cost_function(available_subsets[i]);
       subset = available_subsets[i];
@@ -229,7 +230,7 @@ int greedy_pick_subset(cost_function, alist)
   va_return_int(alist, subset);
 }
 
-__TR_function greedy_pick_subset_generator(int (*cost_function)(int)) {
+__TR_function greedy_pick_subset_generator(float (*cost_function)(int)) {
   return alloc_callback(&greedy_pick_subset, cost_function);
 }
 
@@ -330,11 +331,11 @@ void finalize(){
   free(x);
 }
 
-int static_cost(int subset) {
+float static_cost(int subset) {
   return cost[subset];
 }
 
-int static_cover_cost(int subset) {
+float static_cover_cost(int subset) {
   return cost[subset] / nelement[subset];
 }
 
@@ -348,10 +349,14 @@ int main(int argc, char *argv[]) {
     construction_search(random_pick_element, random_pick_subset);
   }
   else if (ch2) {
-    construction_search(random_pick_element, greedy_pick_subset_generator(static_cost));
+    __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
+    construction_search(random_pick_element, pick_subset);
+    free_callback(pick_subset);
   }
   else if (ch3) {
-    construction_search(random_pick_element, greedy_pick_subset_generator(static_cover_cost));
+    __TR_function pick_subset = greedy_pick_subset_generator(static_cover_cost);
+    construction_search(random_pick_element, pick_subset);
+    free_callback(pick_subset);
   }
   compute_solution_variables();
   print_solution();
