@@ -3,7 +3,7 @@
 PACKAGE = lsscp
 SRCS    = $(PACKAGE).c
 # HEADS = $(PACKAGE).h
-OBJS    = $(SRCS:.c=.o)
+OBJS    = $(SRCS:.c=.o) $(wildcard lib*.a)
 
 FILES   = $(SRCS) utils.c scp42.txt
 VER     = `date +%Y%m%d`

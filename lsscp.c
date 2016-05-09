@@ -21,6 +21,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+#include <callback.h>
+
 #include "utils.c"
 
 /** Algorithm parameters **/
@@ -29,7 +31,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, bi=0, fi=0, re=0; 
+int ch1=0, ch2=0, ch3=0, bi=0, fi=0, re=0; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -65,6 +67,7 @@ void usage(){
     printf("Options:\n");
     printf("  --ch1: random solution construction\n");
     printf("  --ch2: static cost-based greedy values.\n");
+    printf("  --ch3: static cover cost-based greedy values.\n");
     printf("  --re: applies redundancy elimination after construction.\n");
     printf("  --bi: best improvement.\n");
     printf("\n");
@@ -94,6 +97,8 @@ void read_parameters(int argc, char *argv[]) {
       ch1=1;
     } else if (strcmp(argv[i], "--ch2") == 0) {
       ch2=1;
+    } else if (strcmp(argv[i], "--ch3") == 0) {
+      ch3=1;
     } else if (strcmp(argv[i], "--bi") == 0) {
       bi=1;
     } else if (strcmp(argv[i], "--fi") == 0) {
@@ -204,19 +209,31 @@ int random_pick_subset(int elem) {
   return subset;
 }
 
-int greedy_pick_subset(int elem) {
+int greedy_pick_subset(data, alist) 
+  void * data;
+  va_alist alist;
+{
+  int (*cost_function)(int) = (int (*)(int))data;
+  va_start_int(alist);
+  int elem = va_arg_int(alist);
+  printf("%p %d\n", cost_function, elem);
   int * available_subsets = subset[elem];
   int navailable_subsets = nsubset[elem];
   int subset = available_subsets[0];
-  int min_cost = cost[subset];
+  int min_cost = cost_function(subset);
   for (int i = 1; i < navailable_subsets; ++i) {
     if (cost[available_subsets[i]] < min_cost) {
-      min_cost = cost[available_subsets[i]];
+      min_cost = cost_function(available_subsets[i]);
       subset = available_subsets[i];
     }
   }
-  return subset;
+  va_return_int(alist, subset);
 }
+
+__TR_function greedy_pick_subset_generator(int (*cost_function)(int)) {
+  return alloc_callback(&greedy_pick_subset, cost_function);
+}
+
 
 void compute_solution_variables() {
   for (int i = 0; i < n; ++i) {
@@ -314,6 +331,14 @@ void finalize(){
   free(x);
 }
 
+int static_cost(int subset) {
+  return cost[subset];
+}
+
+int static_cover_cost(int subset) {
+  return cost[subset] / nelement[subset];
+}
+
 int main(int argc, char *argv[]) {
   read_parameters(argc, argv);
   srand(seed); /*set seed */
@@ -324,7 +349,10 @@ int main(int argc, char *argv[]) {
     construction_search(random_pick_element, random_pick_subset);
   }
   else if (ch2) {
-    construction_search(random_pick_element, greedy_pick_subset);
+    construction_search(random_pick_element, greedy_pick_subset_generator(static_cost));
+  }
+  else if (ch3) {
+    construction_search(random_pick_element, greedy_pick_subset_generator(static_cover_cost));
   }
   compute_solution_variables();
   print_solution();
