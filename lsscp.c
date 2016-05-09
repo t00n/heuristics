@@ -209,11 +209,10 @@ int random_pick_subset(int elem) {
   return subset;
 }
 
-int greedy_pick_subset(data, alist) 
-  void * data;
+int greedy_pick_subset(cost_function, alist) 
+  int (*cost_function)(int);
   va_alist alist;
 {
-  int (*cost_function)(int) = (int (*)(int))data;
   va_start_int(alist);
   int elem = va_arg_int(alist);
   printf("%p %d\n", cost_function, elem);
