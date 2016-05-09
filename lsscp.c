@@ -31,7 +31,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, ch3=0, bi=0, fi=0, re=0; 
+int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -68,6 +68,7 @@ void usage(){
     printf("  --ch1: random solution construction\n");
     printf("  --ch2: static cost-based greedy values.\n");
     printf("  --ch3: static cover cost-based greedy values.\n");
+    printf("  --ch4: adapted cover cost-based greedy values\n");
     printf("  --re: applies redundancy elimination after construction.\n");
     printf("  --bi: best improvement.\n");
     printf("\n");
@@ -99,6 +100,8 @@ void read_parameters(int argc, char *argv[]) {
       ch2=1;
     } else if (strcmp(argv[i], "--ch3") == 0) {
       ch3=1;
+    } else if (strcmp(argv[i], "--ch4") == 0) {
+      ch4=1;
     } else if (strcmp(argv[i], "--bi") == 0) {
       bi=1;
     } else if (strcmp(argv[i], "--fi") == 0) {
@@ -339,6 +342,16 @@ float static_cover_cost(int subset) {
   return cost[subset] / nelement[subset];
 }
 
+float adapted_cover_cost(int subset) {
+  int count = 0;
+  for (int i = 0; i < nelement[subset]; ++i) {
+    if (!set_member(element[subset][i], elements_picked, nelements_picked)) {
+      count += 1;
+    }
+  }
+  return (float)cost[subset] / (float)count;
+}
+
 int main(int argc, char *argv[]) {
   read_parameters(argc, argv);
   srand(seed); /*set seed */
@@ -355,6 +368,11 @@ int main(int argc, char *argv[]) {
   }
   else if (ch3) {
     __TR_function pick_subset = greedy_pick_subset_generator(static_cover_cost);
+    construction_search(random_pick_element, pick_subset);
+    free_callback(pick_subset);
+  }
+  else if (ch4) {
+    __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
     construction_search(random_pick_element, pick_subset);
     free_callback(pick_subset);
   }
