@@ -222,11 +222,10 @@ int greedy_pick_subset(cost_function, alist)
   int navailable_subsets = nsubset[elem];
   int subset = available_subsets[0];
   float min_cost = cost_function(subset);
-  printf("%f\n", min_cost);
   for (int i = 1; i < navailable_subsets; ++i) {
-    printf("%d %f\n", cost[available_subsets[i]], min_cost);
-    if (cost[available_subsets[i]] < min_cost) {
-      min_cost = cost_function(available_subsets[i]);
+    float cost = cost_function(available_subsets[i]);
+    if (cost < min_cost) {
+      min_cost = cost;
       subset = available_subsets[i];
     }
   }
@@ -339,7 +338,7 @@ float static_cost(int subset) {
 }
 
 float static_cover_cost(int subset) {
-  return cost[subset] / nelement[subset];
+  return (float) cost[subset] / (float)nelement[subset];
 }
 
 float adapted_cover_cost(int subset) {
