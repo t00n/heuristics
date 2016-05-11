@@ -254,36 +254,36 @@ float adapted_cover_cost(int subset) {
   return (float)cost[subset] / (float)count;
 }
 
-int find_redundant_sets(int * res) {
-  int count = 0;
+bool elem_is_redundant(int elem, int subset) {
   for (int i = 0; i < nsubset_cover; ++i) {
-    int subset_i = subset_cover[i];
-    bool all = true;
-    for (int j = 0; j < nelement[subset_i]; ++j) {
-      int elem_i = element[subset_i][j];
-      bool elem_found = false;
-      for (int k = 0; k < nsubset_cover; ++k) {
-        if (subset_cover[k] != subset_i) {
-          int other_subset = subset_cover[k];
-          for (int l = 0; l < nelement[other_subset]; ++l) {
-            if (element[other_subset][l] == elem_i) {
-              elem_found = true;
-              break;
-            }
-          }
-        }
-        if (elem_found) {
-          break;
-        }
-      }
-      if (! elem_found) {
-        all = false;
-        break;
+    if (subset_cover[i] != subset) {
+      int other_subset = subset_cover[i];
+      for (int j = 0; j < nelement[other_subset]; ++j) {
+        if (element[other_subset][j] == elem) {
+          return true;        }
       }
     }
-    if (all) {
-      printf("set %d is redundant\n", subset_i);
-      res[count++] = subset_i;
+  }
+  return false;
+}
+
+bool subset_is_redundant(int subset) {
+  for (int i = 0; i < nelement[subset]; ++i) {
+    int elem = element[subset][i];
+    if (!elem_is_redundant(elem, subset)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+int find_redundant_subsets(int * res) {
+  int count = 0;
+  for (int i = 0; i < nsubset_cover; ++i) {
+    int subset = subset_cover[i];
+    if (subset_is_redundant(subset)) {
+      printf("set %d is redundant\n", subset);
+      res[count++] = subset;
     }
   }
   return count;
@@ -293,7 +293,7 @@ void eliminate_redundancy(float (*cost_function)(int)) {
   int * redundant_sets = mymalloc(nsubset_cover * sizeof(int));
   int nredundant_sets;
   do {
-    nredundant_sets = find_redundant_sets(redundant_sets);
+    nredundant_sets = find_redundant_subsets(redundant_sets);
     int max_cost = 0;
     int max_set = -1;
     for (int i = 0; i < nredundant_sets; ++i) {
