@@ -385,7 +385,7 @@ void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
   free(redundant_sets);
 }
 
-float first_improvement(int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
+int first_improvement(int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       memcpy(work_subsets, x, n * sizeof(int));
@@ -402,17 +402,17 @@ float first_improvement(int * work_subsets, int * work_elems, int * x, int * y, 
       }
     }
   }
-  return INFINITY;
+  return current_cost;
 }
 
-void iterative_search(float (*improvement_function)(int*, int*, int*, int*, int), int * x, int * y) {
-  float current_cost = compute_cost(x);
+void iterative_search(int (*improvement_function)(int*, int*, int*, int*, int), int * x, int * y) {
+  int current_cost = compute_cost(x);
   bool improvement;
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
   do {
     improvement = false;
-    float cost = improvement_function(work_subsets, work_elems, x, y, current_cost);
+    int cost = improvement_function(work_subsets, work_elems, x, y, current_cost);
     if (cost < current_cost) {
       improvement = true;
       current_cost = cost;
