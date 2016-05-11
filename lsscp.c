@@ -55,8 +55,6 @@ int fx;           /* sum of the cost of the subsets selected in the solution (ca
 /**       or when a complete solution is modified*/
 int *subset_cover;   /* subset_subsetver[i] selected subsets that cover element i */
 int nsubset_cover;   /* number of selected subsets that cover element i */
-int *elements_picked; /* elements already covered by subset_cover */
-int nelements_picked; /* number of previous */
 
 void usage(){
     printf("\nUSAGE: lsscp [param_name, param_value] [options]...\n");
@@ -181,23 +179,32 @@ int random_pick_element() {
   do {
      elem = rand() % m;
   }
-  while (set_member(elem, elements_picked, nelements_picked));
-  elements_picked[nelements_picked++] = elem;
+  while (y[elem]);
   return elem;
 }
 
-void add_subset_elems(int subset) {
+int add_subset_elems(int subset) {
+  int total = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
-    nelements_picked = set_add(element[subset][i], elements_picked, nelements_picked);
+    if (y[element[subset][i]] == false) {
+      y[element[subset][i]] = true;
+      total++;
+    }
   }
+  return total;
 }
 
 void construction_search(int (*pick_elem)(), int (*pick_subset)(int)) {
+  int nelements_picked = 0;
   while (nelements_picked < m) {
     int elem = pick_elem();
+    y[elem] = true;
+    nelements_picked++;
     int subset = pick_subset(elem);
-    subset_cover[nsubset_cover++] = subset;
-    add_subset_elems(subset);
+    x[subset] = true;
+    nsubset_cover++;
+    fx += cost[subset];
+    nelements_picked += add_subset_elems(subset);
   }
 }
 
@@ -208,7 +215,7 @@ int random_pick_subset(int elem) {
   do {
     subset = available_subsets[rand() % navailable_subsets];
   }
-  while (set_member(subset, subset_cover, nsubset_cover));
+  while (x[subset]);
   return subset;
 }
 
@@ -247,7 +254,7 @@ float static_cover_cost(int subset) {
 float adapted_cover_cost(int subset) {
   int count = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
-    if (!set_member(element[subset][i], elements_picked, nelements_picked)) {
+    if (!y[element[subset][i]]) {
       count += 1;
     }
   }
@@ -255,11 +262,10 @@ float adapted_cover_cost(int subset) {
 }
 
 bool elem_is_redundant(int elem, int subset) {
-  for (int i = 0; i < nsubset_cover; ++i) {
-    if (subset_cover[i] != subset) {
-      int other_subset = subset_cover[i];
-      for (int j = 0; j < nelement[other_subset]; ++j) {
-        if (element[other_subset][j] == elem) {
+  for (int i = 0; i < n; ++i) {
+    if (i != subset && x[i]) {
+      for (int j = 0; j < nelement[i]; ++j) {
+        if (element[i][j] == elem) {
           return true;        }
       }
     }
@@ -279,11 +285,10 @@ bool subset_is_redundant(int subset) {
 
 int find_redundant_subsets(int * res) {
   int count = 0;
-  for (int i = 0; i < nsubset_cover; ++i) {
-    int subset = subset_cover[i];
-    if (subset_is_redundant(subset)) {
-      printf("set %d is redundant\n", subset);
-      res[count++] = subset;
+  for (int i = 0; i < n; ++i) {
+    if (x[i] && subset_is_redundant(i)) {
+      printf("set %d is redundant. cost : %d\n", i, cost[i]);
+      res[count++] = i;
     }
   }
   return count;
@@ -304,29 +309,12 @@ void eliminate_redundancy(float (*cost_function)(int)) {
       }
     }
     if (max_set != -1) {
-      int res = set_remove(max_set, subset_cover, nsubset_cover);
-      if (res != -1) {
-        nsubset_cover = res;
-      }
+      x[max_set] = false;
+      nsubset_cover--;
+      fx -= cost[max_set];
     }
   } while (nredundant_sets > 0);
   free(redundant_sets);
-}
-
-void compute_solution_variables() {
-  for (int i = 0; i < n; ++i) {
-    x[i] = 0;
-  }
-  for (int i = 0; i < nsubset_cover; ++i) {
-    x[subset_cover[i]] = 1;
-    fx += cost[subset_cover[i]];
-  }
-  for (int i = 0; i < m; ++i) {
-    y[i] = 0;
-  }
-  for (int i = 0; i < nelements_picked; ++i) {
-    y[elements_picked[i]] = 1;
-  }
 }
 
 // bool is_admissible_solution() {
@@ -380,20 +368,25 @@ void print_solution() {
   // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
   printf("Solution cost : %d\n", fx);
   printf("Solution : %d subsets\n", nsubset_cover);
-  for (int i = 0; i < nsubset_cover; ++i) {
-    printf("%d, ", subset_cover[i]);
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      printf("%d, ", i);
+    }
   }
 }
 
 /*** Use this function to initialize other variables of the algorithms **/
 void initialize(){
   x = mymalloc(n * sizeof(int));
+  for (int i = 0; i < n; ++i) {
+    x[i] = false;
+  }
   y = mymalloc(m * sizeof(int));
+  for (int i = 0; i < m; ++i) {
+    y[i] = false;
+  }
   fx = 0;
-  subset_cover = mymalloc(n * sizeof(int)); // because n is the maximum size if the solution takes all subsets
   nsubset_cover = 0;
-  elements_picked = mymalloc(m * sizeof(int));
-  nelements_picked = 0;
 }
 // 
 /*** Use this function to finalize execution */
@@ -403,8 +396,6 @@ void finalize(){
   free(nelement);
   free(nsubset);
   free(cost);
-  free(elements_picked);
-  free(subset_cover);
   free(y);
   free(x);
 }
@@ -436,7 +427,7 @@ int main(int argc, char *argv[]) {
   if (re) {
     eliminate_redundancy(static_cost);
   }
-  compute_solution_variables();
+  // compute_solution_variables();
   print_solution();
   finalize();
   return EXIT_SUCCESS;
