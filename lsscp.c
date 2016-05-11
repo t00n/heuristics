@@ -426,7 +426,7 @@ int best_improvement(int * work_subsets, int * work_elems, int * x, int * y, int
 
 }
 
-void iterative_search(int (*improvement_function)(int*, int*, int*, int*, int), int * x, int * y) {
+void perturbative_search(int (*improvement_function)(int*, int*, int*, int*, int), int * x, int * y) {
   int current_cost = compute_cost(x);
   bool improvement;
   int * work_subsets = mymalloc(n * sizeof(int));
@@ -554,10 +554,10 @@ int main(int argc, char *argv[]) {
     eliminate_redundancy(static_cost, x, y);
   }
   if (fi) {
-    iterative_search(first_improvement, x, y);
+    perturbative_search(first_improvement, x, y);
   }
   else if (bi) {
-    iterative_search(best_improvement, x, y);
+    perturbative_search(best_improvement, x, y);
   }
   // compute_solution_variables();
   print_solution();
