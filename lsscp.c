@@ -260,6 +260,36 @@ int remove_subset(int subset, int * x, int * y) {
   return 0;
 }
 
+int compute_cost(int * x) {
+  int total = 0;
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      total += cost[i];
+    }
+  }
+  return total;
+}
+
+int compute_subsets(int * x) {
+  int total = 0;
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      total++;
+    }
+  }
+  return total;
+}
+
+int compute_elems(int * y) {
+  int total = 0;
+  for (int i = 0; i < m; ++i) {
+    if (y[i]) {
+      total++;
+    }
+  }
+  return total;
+}
+
 void construction_search(int (*pick_elem)(), int (*pick_subset)(int, int*), int * x, int * y) {
   int nelements_picked = compute_elems(y);
   while (nelements_picked < m) {
@@ -299,6 +329,7 @@ int greedy_pick_subset(cost_function, alist)
     }
   }
   va_return_int(alist, subset);
+  return 0;
 }
 
 __TR_function greedy_pick_subset_generator(float (*cost_function)(int, int*)) {
@@ -327,7 +358,6 @@ int find_redundant_subsets(int * res, int * x) {
   int count = 0;
   for (int i = 0; i < n; ++i) {
     if (x[i] && subset_is_redundant(i, x)) {
-      printf("set %d is redundant. cost : %d\n", i, cost[i]);
       res[count++] = i;
     }
   }
@@ -355,73 +385,42 @@ void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
   free(redundant_sets);
 }
 
-int compute_cost(int * x) {
-  int total = 0;
-  for (int i = 0; i < n; ++i) {
-    if (x[i]) {
-      total += cost[i];
-    }
-  }
-  return total;
-}
-
-int compute_subsets(int * x) {
-  int total = 0;
-  for (int i = 0; i < n; ++i) {
-    if (x[i]) {
-      total++;
-    }
-  }
-  return total;
-}
-
-int compute_elems(int * y) {
-  int total = 0;
-  for (int i = 0; i < m; ++i) {
-    if (y[i]) {
-      total++;
-    }
-  }
-  return total;
-}
-
-float first_improvement(int * x, int * y, int current_cost) {
-  int * work_subsets = mymalloc(n * sizeof(int));
-  int * work_elems = mymalloc(m * sizeof(int));
+float first_improvement(int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       memcpy(work_subsets, x, n * sizeof(int));
       memcpy(work_elems, y, m * sizeof(int));
       remove_subset(i, work_subsets, work_elems);
-      __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
+      __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
       construction_search(random_pick_element, pick_subset, work_subsets, work_elems);
       free_callback(pick_subset);
       int cost = compute_cost(work_subsets);
       if (cost < current_cost) {
         memcpy(x, work_subsets, n * sizeof(int));
         memcpy(y, work_elems, m * sizeof(int));
-        free(work_elems);
-        free(work_subsets);
         return cost;
       }
     }
   }
-  free(work_elems);
-  free(work_subsets);
   return INFINITY;
 }
 
-void iterative_search(int * x, int * y) {
-  float current_cost = fx;
+void iterative_search(float (*improvement_function)(int*, int*, int*, int*, int), int * x, int * y) {
+  float current_cost = compute_cost(x);
   bool improvement;
+  int * work_subsets = mymalloc(n * sizeof(int));
+  int * work_elems = mymalloc(m * sizeof(int));
   do {
     improvement = false;
-    float cost = first_improvement(x, y, current_cost);
+    float cost = improvement_function(work_subsets, work_elems, x, y, current_cost);
     if (cost < current_cost) {
       improvement = true;
       current_cost = cost;
     }
+    eliminate_redundancy(static_cost, x, y);
   } while (improvement);
+  free(work_elems);
+  free(work_subsets);
 }
 
 // bool is_admissible_solution() {
@@ -530,14 +529,14 @@ int main(int argc, char *argv[]) {
     construction_search(random_pick_element, pick_subset, x, y);
     free_callback(pick_subset);
   }
-  if (fi) {
-    iterative_search(x, y);
-  }
-  else if (bi) {
-    iterative_search(x, y);
-  }
   if (re) {
     eliminate_redundancy(static_cost, x, y);
+  }
+  if (fi) {
+    iterative_search(first_improvement, x, y);
+  }
+  else if (bi) {
+    // iterative_search(x, y);
   }
   // compute_solution_variables();
   print_solution();
