@@ -236,6 +236,82 @@ __TR_function greedy_pick_subset_generator(float (*cost_function)(int)) {
   return alloc_callback(&greedy_pick_subset, cost_function);
 }
 
+float static_cost(int subset) {
+  return cost[subset];
+}
+
+float static_cover_cost(int subset) {
+  return (float) cost[subset] / (float)nelement[subset];
+}
+
+float adapted_cover_cost(int subset) {
+  int count = 0;
+  for (int i = 0; i < nelement[subset]; ++i) {
+    if (!set_member(element[subset][i], elements_picked, nelements_picked)) {
+      count += 1;
+    }
+  }
+  return (float)cost[subset] / (float)count;
+}
+
+int find_redundant_sets(int * res) {
+  int count = 0;
+  for (int i = 0; i < nsubset_cover; ++i) {
+    int subset_i = subset_cover[i];
+    bool all = true;
+    for (int j = 0; j < nelement[subset_i]; ++j) {
+      int elem_i = element[subset_i][j];
+      bool elem_found = false;
+      for (int k = 0; k < nsubset_cover; ++k) {
+        if (subset_cover[k] != subset_i) {
+          int other_subset = subset_cover[k];
+          for (int l = 0; l < nelement[other_subset]; ++l) {
+            if (element[other_subset][l] == elem_i) {
+              elem_found = true;
+              break;
+            }
+          }
+        }
+        if (elem_found) {
+          break;
+        }
+      }
+      if (! elem_found) {
+        all = false;
+        break;
+      }
+    }
+    if (all) {
+      printf("set %d is redundant\n", subset_i);
+      res[count++] = subset_i;
+    }
+  }
+  return count;
+}
+
+void eliminate_redundancy(float (*cost_function)(int)) {
+  int * redundant_sets = mymalloc(nsubset_cover * sizeof(int));
+  int nredundant_sets;
+  do {
+    nredundant_sets = find_redundant_sets(redundant_sets);
+    int max_cost = 0;
+    int max_set = -1;
+    for (int i = 0; i < nredundant_sets; ++i) {
+      int cost = cost_function(redundant_sets[i]);
+      if (cost > max_cost) {
+        max_cost = cost;
+        max_set = redundant_sets[i];
+      }
+    }
+    if (max_set != -1) {
+      int res = set_remove(max_set, subset_cover, nsubset_cover);
+      if (res != -1) {
+        nsubset_cover = res;
+      }
+    }
+  } while (nredundant_sets > 0);
+  free(redundant_sets);
+}
 
 void compute_solution_variables() {
   for (int i = 0; i < n; ++i) {
@@ -333,24 +409,6 @@ void finalize(){
   free(x);
 }
 
-float static_cost(int subset) {
-  return cost[subset];
-}
-
-float static_cover_cost(int subset) {
-  return (float) cost[subset] / (float)nelement[subset];
-}
-
-float adapted_cover_cost(int subset) {
-  int count = 0;
-  for (int i = 0; i < nelement[subset]; ++i) {
-    if (!set_member(element[subset][i], elements_picked, nelements_picked)) {
-      count += 1;
-    }
-  }
-  return (float)cost[subset] / (float)count;
-}
-
 int main(int argc, char *argv[]) {
   read_parameters(argc, argv);
   srand(seed); /*set seed */
@@ -374,6 +432,9 @@ int main(int argc, char *argv[]) {
     __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
     construction_search(random_pick_element, pick_subset);
     free_callback(pick_subset);
+  }
+  if (re) {
+    eliminate_redundancy(static_cost);
   }
   compute_solution_variables();
   print_solution();
