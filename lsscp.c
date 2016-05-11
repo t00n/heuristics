@@ -174,7 +174,7 @@ void read_scp(char *filename) {
   free((void *)k);
 }
 
-int random_pick_element() {
+int random_pick_element(int * y) {
   int elem;
   do {
      elem = rand() % m;
@@ -183,7 +183,7 @@ int random_pick_element() {
   return elem;
 }
 
-int add_elem(int elem) {
+int add_elem(int elem, int * y) {
   if (!y[elem]) {
     y[elem] = true;
     return 1;
@@ -191,7 +191,7 @@ int add_elem(int elem) {
   return 0;
 }
 
-bool elem_is_redundant(int elem, int subset) {
+bool elem_is_redundant(int elem, int subset, int * x) {
   for (int i = 0; i < n; ++i) {
     if (i != subset && x[i]) {
       for (int j = 0; j < nelement[i]; ++j) {
@@ -203,17 +203,17 @@ bool elem_is_redundant(int elem, int subset) {
   return false;
 }
 
-bool subset_is_redundant(int subset) {
+bool subset_is_redundant(int subset, int * x) {
   for (int i = 0; i < nelement[subset]; ++i) {
     int elem = element[subset][i];
-    if (!elem_is_redundant(elem, subset)) {
+    if (!elem_is_redundant(elem, subset, x)) {
       return false;
     }
   }
   return true;
 }
 
-int remove_elem(int elem) {
+int remove_elem(int elem, int * y) {
   if (y[elem]) {
     y[elem] = false;
     return 1;
@@ -221,58 +221,58 @@ int remove_elem(int elem) {
   return 0;
 }
 
-int add_subset_elems(int subset) {
+int add_subset_elems(int subset, int * y) {
   int total = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
-    if (add_elem(element[subset][i])) {
+    if (add_elem(element[subset][i], y)) {
       total++;
     }
   }
   return total;
 }
 
-int remove_subset_elems(int subset) {
+int remove_subset_elems(int subset, int * x, int * y) {
   int total = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
     int elem = element[subset][i];
-    if (!elem_is_redundant(elem, subset) && remove_elem(elem)) {
+    if (!elem_is_redundant(elem, subset, x) && remove_elem(elem, y)) {
       total++;
     }
   }
   return total;
 }
 
-int add_subset(int subset) {
+int add_subset(int subset, int * x, int * y) {
   if (!x[subset]) {
     x[subset] = true;
     nsubset_cover++;
     fx += cost[subset];
-    return add_subset_elems(subset);
+    return add_subset_elems(subset, y);
   }
   return 0;
 }
 
-int remove_subset(int subset) {
+int remove_subset(int subset, int * x, int * y) {
   if (x[subset]) {
     x[subset] = false;
     nsubset_cover--;
     fx -= cost[subset];
-    return remove_subset_elems(subset);
+    return remove_subset_elems(subset, x, y);
   }
   return 0;
 }
 
-void construction_search(int (*pick_elem)(), int (*pick_subset)(int)) {
+void construction_search(int (*pick_elem)(), int (*pick_subset)(int, int*), int * x, int * y) {
   int nelements_picked = 0;
   while (nelements_picked < m) {
-    int elem = pick_elem();
-    nelements_picked += add_elem(elem);
-    int subset = pick_subset(elem);
-    nelements_picked += add_subset(subset);
+    int elem = pick_elem(y);
+    nelements_picked += add_elem(elem, y);
+    int subset = pick_subset(elem, x);
+    nelements_picked += add_subset(subset, x, y);
   }
 }
 
-int random_pick_subset(int elem) {
+int random_pick_subset(int elem, int * x) {
   int * available_subsets = subset[elem];
   int navailable_subsets = nsubset[elem];
   int subset;
@@ -283,17 +283,18 @@ int random_pick_subset(int elem) {
 }
 
 int greedy_pick_subset(cost_function, alist) 
-  float (*cost_function)(int);
+  float (*cost_function)(int, int*);
   va_alist alist;
 {
   va_start_int(alist);
   int elem = va_arg_int(alist);
+  int * x = va_arg_ptr(alist, int*);
   int * available_subsets = subset[elem];
   int navailable_subsets = nsubset[elem];
   int subset = available_subsets[0];
-  float min_cost = cost_function(subset);
+  float min_cost = cost_function(subset, x);
   for (int i = 1; i < navailable_subsets; ++i) {
-    float cost = cost_function(available_subsets[i]);
+    float cost = cost_function(available_subsets[i], x);
     if (cost < min_cost) {
       min_cost = cost;
       subset = available_subsets[i];
@@ -302,19 +303,19 @@ int greedy_pick_subset(cost_function, alist)
   va_return_int(alist, subset);
 }
 
-__TR_function greedy_pick_subset_generator(float (*cost_function)(int)) {
+__TR_function greedy_pick_subset_generator(float (*cost_function)(int, int*)) {
   return alloc_callback(&greedy_pick_subset, cost_function);
 }
 
-float static_cost(int subset) {
+float static_cost(int subset, int * y) {
   return cost[subset];
 }
 
-float static_cover_cost(int subset) {
+float static_cover_cost(int subset, int * y) {
   return (float) cost[subset] / (float)nelement[subset];
 }
 
-float adapted_cover_cost(int subset) {
+float adapted_cover_cost(int subset, int * y) {
   int count = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
     if (!y[element[subset][i]]) {
@@ -324,10 +325,10 @@ float adapted_cover_cost(int subset) {
   return (float)cost[subset] / (float)count;
 }
 
-int find_redundant_subsets(int * res) {
+int find_redundant_subsets(int * res, int * x) {
   int count = 0;
   for (int i = 0; i < n; ++i) {
-    if (x[i] && subset_is_redundant(i)) {
+    if (x[i] && subset_is_redundant(i, x)) {
       printf("set %d is redundant. cost : %d\n", i, cost[i]);
       res[count++] = i;
     }
@@ -335,26 +336,49 @@ int find_redundant_subsets(int * res) {
   return count;
 }
 
-void eliminate_redundancy(float (*cost_function)(int)) {
+void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
   int * redundant_sets = mymalloc(nsubset_cover * sizeof(int));
   int nredundant_sets;
   do {
-    nredundant_sets = find_redundant_subsets(redundant_sets);
+    nredundant_sets = find_redundant_subsets(redundant_sets, x);
     int max_cost = 0;
     int max_set = -1;
     for (int i = 0; i < nredundant_sets; ++i) {
-      int cost = cost_function(redundant_sets[i]);
+      int cost = cost_function(redundant_sets[i], y);
       if (cost > max_cost) {
         max_cost = cost;
         max_set = redundant_sets[i];
       }
     }
     if (max_set != -1) {
-      remove_subset(max_set);
+      remove_subset(max_set, x, y);
     }
   } while (nredundant_sets > 0);
   free(redundant_sets);
 }
+
+int compute_cost() {
+  int total = 0;
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      total += cost[i];
+    }
+  }
+  return total;
+}
+
+// void iterative_search() {
+//   int current_fx = fx;
+//   int current_nsubset = nsubset_cover;
+//   for (int i = 0; i < n; ++i) {
+//     if (x[i]) {
+//       remove_subset(i);
+//       construction_search(random_pick_element, greedy_pick_subset_generator(adapted_cover_cost));
+
+//       add_subset(i);
+//     }
+//   }
+// }
 
 // bool is_admissible_solution() {
 //   bool * all_elems = mymalloc(m * sizeof(bool));
@@ -446,25 +470,31 @@ int main(int argc, char *argv[]) {
   print_instance(1);
   initialize();
   if (ch1) {
-    construction_search(random_pick_element, random_pick_subset);
+    construction_search(random_pick_element, random_pick_subset, x, y);
   }
   else if (ch2) {
     __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
-    construction_search(random_pick_element, pick_subset);
+    construction_search(random_pick_element, pick_subset, x, y);
     free_callback(pick_subset);
   }
   else if (ch3) {
     __TR_function pick_subset = greedy_pick_subset_generator(static_cover_cost);
-    construction_search(random_pick_element, pick_subset);
+    construction_search(random_pick_element, pick_subset, x, y);
     free_callback(pick_subset);
   }
   else if (ch4) {
     __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
-    construction_search(random_pick_element, pick_subset);
+    construction_search(random_pick_element, pick_subset, x, y);
     free_callback(pick_subset);
   }
+  // if (fi) {
+  //   iterative_search();
+  // }
+  // else if (bi) {
+  //   iterative_search();
+  // }
   if (re) {
-    eliminate_redundancy(static_cost);
+    eliminate_redundancy(static_cost, x, y);
   }
   // compute_solution_variables();
   print_solution();
