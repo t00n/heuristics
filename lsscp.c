@@ -405,6 +405,27 @@ int first_improvement(int * work_subsets, int * work_elems, int * x, int * y, in
   return current_cost;
 }
 
+int best_improvement(int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      memcpy(work_subsets, x, n * sizeof(int));
+      memcpy(work_elems, y, m * sizeof(int));
+      remove_subset(i, work_subsets, work_elems);
+      __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
+      construction_search(random_pick_element, pick_subset, work_subsets, work_elems);
+      free_callback(pick_subset);
+      int cost = compute_cost(work_subsets);
+      if (cost < current_cost) {
+        memcpy(x, work_subsets, n * sizeof(int));
+        memcpy(y, work_elems, m * sizeof(int));
+        // current_cost = cost;
+      }
+    }
+  }
+  return current_cost;
+
+}
+
 void iterative_search(int (*improvement_function)(int*, int*, int*, int*, int), int * x, int * y) {
   int current_cost = compute_cost(x);
   bool improvement;
@@ -536,7 +557,7 @@ int main(int argc, char *argv[]) {
     iterative_search(first_improvement, x, y);
   }
   else if (bi) {
-    // iterative_search(x, y);
+    iterative_search(best_improvement, x, y);
   }
   // compute_solution_variables();
   print_solution();
