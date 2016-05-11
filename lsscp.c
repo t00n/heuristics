@@ -245,7 +245,6 @@ int remove_subset_elems(int subset, int * x, int * y) {
 int add_subset(int subset, int * x, int * y) {
   if (!x[subset]) {
     x[subset] = true;
-    nsubset_cover++;
     fx += cost[subset];
     return add_subset_elems(subset, y);
   }
@@ -255,7 +254,6 @@ int add_subset(int subset, int * x, int * y) {
 int remove_subset(int subset, int * x, int * y) {
   if (x[subset]) {
     x[subset] = false;
-    nsubset_cover--;
     fx -= cost[subset];
     return remove_subset_elems(subset, x, y);
   }
@@ -263,7 +261,7 @@ int remove_subset(int subset, int * x, int * y) {
 }
 
 void construction_search(int (*pick_elem)(), int (*pick_subset)(int, int*), int * x, int * y) {
-  int nelements_picked = 0;
+  int nelements_picked = compute_elems(y);
   while (nelements_picked < m) {
     int elem = pick_elem(y);
     nelements_picked += add_elem(elem, y);
@@ -337,7 +335,7 @@ int find_redundant_subsets(int * res, int * x) {
 }
 
 void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
-  int * redundant_sets = mymalloc(nsubset_cover * sizeof(int));
+  int * redundant_sets = mymalloc(compute_subsets(x) * sizeof(int));
   int nredundant_sets;
   do {
     nredundant_sets = find_redundant_subsets(redundant_sets, x);
@@ -357,7 +355,7 @@ void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
   free(redundant_sets);
 }
 
-int compute_cost() {
+int compute_cost(int * x) {
   int total = 0;
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
@@ -367,18 +365,64 @@ int compute_cost() {
   return total;
 }
 
-// void iterative_search() {
-//   int current_fx = fx;
-//   int current_nsubset = nsubset_cover;
-//   for (int i = 0; i < n; ++i) {
-//     if (x[i]) {
-//       remove_subset(i);
-//       construction_search(random_pick_element, greedy_pick_subset_generator(adapted_cover_cost));
+int compute_subsets(int * x) {
+  int total = 0;
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      total++;
+    }
+  }
+  return total;
+}
 
-//       add_subset(i);
-//     }
-//   }
-// }
+int compute_elems(int * y) {
+  int total = 0;
+  for (int i = 0; i < m; ++i) {
+    if (y[i]) {
+      total++;
+    }
+  }
+  return total;
+}
+
+float first_improvement(int * x, int * y, int current_cost) {
+  int * work_subsets = mymalloc(n * sizeof(int));
+  int * work_elems = mymalloc(m * sizeof(int));
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      memcpy(work_subsets, x, n * sizeof(int));
+      memcpy(work_elems, y, m * sizeof(int));
+      remove_subset(i, work_subsets, work_elems);
+      __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
+      construction_search(random_pick_element, pick_subset, work_subsets, work_elems);
+      free_callback(pick_subset);
+      int cost = compute_cost(work_subsets);
+      if (cost < current_cost) {
+        memcpy(x, work_subsets, n * sizeof(int));
+        memcpy(y, work_elems, m * sizeof(int));
+        free(work_elems);
+        free(work_subsets);
+        return cost;
+      }
+    }
+  }
+  free(work_elems);
+  free(work_subsets);
+  return INFINITY;
+}
+
+void iterative_search(int * x, int * y) {
+  float current_cost = fx;
+  bool improvement;
+  do {
+    improvement = false;
+    float cost = first_improvement(x, y, current_cost);
+    if (cost < current_cost) {
+      improvement = true;
+      current_cost = cost;
+    }
+  } while (improvement);
+}
 
 // bool is_admissible_solution() {
 //   bool * all_elems = mymalloc(m * sizeof(bool));
@@ -429,8 +473,8 @@ void print_instance(int level){
 
 void print_solution() {
   // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
-  printf("Solution cost : %d\n", fx);
-  printf("Solution : %d subsets\n", nsubset_cover);
+  printf("Solution cost : %d\n", compute_cost(x));
+  printf("Solution : %d subsets\n", compute_subsets(x));
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       printf("%d, ", i);
@@ -449,7 +493,6 @@ void initialize(){
     y[i] = false;
   }
   fx = 0;
-  nsubset_cover = 0;
 }
 // 
 /*** Use this function to finalize execution */
@@ -487,12 +530,12 @@ int main(int argc, char *argv[]) {
     construction_search(random_pick_element, pick_subset, x, y);
     free_callback(pick_subset);
   }
-  // if (fi) {
-  //   iterative_search();
-  // }
-  // else if (bi) {
-  //   iterative_search();
-  // }
+  if (fi) {
+    iterative_search(x, y);
+  }
+  else if (bi) {
+    iterative_search(x, y);
+  }
   if (re) {
     eliminate_redundancy(static_cost, x, y);
   }
