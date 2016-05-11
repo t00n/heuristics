@@ -191,10 +191,51 @@ int add_elem(int elem) {
   return 0;
 }
 
+bool elem_is_redundant(int elem, int subset) {
+  for (int i = 0; i < n; ++i) {
+    if (i != subset && x[i]) {
+      for (int j = 0; j < nelement[i]; ++j) {
+        if (element[i][j] == elem) {
+          return true;        }
+      }
+    }
+  }
+  return false;
+}
+
+bool subset_is_redundant(int subset) {
+  for (int i = 0; i < nelement[subset]; ++i) {
+    int elem = element[subset][i];
+    if (!elem_is_redundant(elem, subset)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+int remove_elem(int elem) {
+  if (y[elem]) {
+    y[elem] = false;
+    return 1;
+  }
+  return 0;
+}
+
 int add_subset_elems(int subset) {
   int total = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
     if (add_elem(element[subset][i])) {
+      total++;
+    }
+  }
+  return total;
+}
+
+int remove_subset_elems(int subset) {
+  int total = 0;
+  for (int i = 0; i < nelement[subset]; ++i) {
+    int elem = element[subset][i];
+    if (!elem_is_redundant(elem, subset) && remove_elem(elem)) {
       total++;
     }
   }
@@ -211,12 +252,14 @@ int add_subset(int subset) {
   return 0;
 }
 
-void remove_subset(int subset) {
+int remove_subset(int subset) {
   if (x[subset]) {
     x[subset] = false;
     nsubset_cover--;
     fx -= cost[subset];
+    return remove_subset_elems(subset);
   }
+  return 0;
 }
 
 void construction_search(int (*pick_elem)(), int (*pick_subset)(int)) {
@@ -279,28 +322,6 @@ float adapted_cover_cost(int subset) {
     }
   }
   return (float)cost[subset] / (float)count;
-}
-
-bool elem_is_redundant(int elem, int subset) {
-  for (int i = 0; i < n; ++i) {
-    if (i != subset && x[i]) {
-      for (int j = 0; j < nelement[i]; ++j) {
-        if (element[i][j] == elem) {
-          return true;        }
-      }
-    }
-  }
-  return false;
-}
-
-bool subset_is_redundant(int subset) {
-  for (int i = 0; i < nelement[subset]; ++i) {
-    int elem = element[subset][i];
-    if (!elem_is_redundant(elem, subset)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 int find_redundant_subsets(int * res) {
