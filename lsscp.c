@@ -183,28 +183,49 @@ int random_pick_element() {
   return elem;
 }
 
+int add_elem(int elem) {
+  if (!y[elem]) {
+    y[elem] = true;
+    return 1;
+  }
+  return 0;
+}
+
 int add_subset_elems(int subset) {
   int total = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
-    if (y[element[subset][i]] == false) {
-      y[element[subset][i]] = true;
+    if (add_elem(element[subset][i])) {
       total++;
     }
   }
   return total;
 }
 
+int add_subset(int subset) {
+  if (!x[subset]) {
+    x[subset] = true;
+    nsubset_cover++;
+    fx += cost[subset];
+    return add_subset_elems(subset);
+  }
+  return 0;
+}
+
+void remove_subset(int subset) {
+  if (x[subset]) {
+    x[subset] = false;
+    nsubset_cover--;
+    fx -= cost[subset];
+  }
+}
+
 void construction_search(int (*pick_elem)(), int (*pick_subset)(int)) {
   int nelements_picked = 0;
   while (nelements_picked < m) {
     int elem = pick_elem();
-    y[elem] = true;
-    nelements_picked++;
+    nelements_picked += add_elem(elem);
     int subset = pick_subset(elem);
-    x[subset] = true;
-    nsubset_cover++;
-    fx += cost[subset];
-    nelements_picked += add_subset_elems(subset);
+    nelements_picked += add_subset(subset);
   }
 }
 
@@ -214,8 +235,7 @@ int random_pick_subset(int elem) {
   int subset;
   do {
     subset = available_subsets[rand() % navailable_subsets];
-  }
-  while (x[subset]);
+  } while (x[subset]);
   return subset;
 }
 
@@ -309,9 +329,7 @@ void eliminate_redundancy(float (*cost_function)(int)) {
       }
     }
     if (max_set != -1) {
-      x[max_set] = false;
-      nsubset_cover--;
-      fx -= cost[max_set];
+      remove_subset(max_set);
     }
   } while (nredundant_sets > 0);
   free(redundant_sets);
