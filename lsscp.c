@@ -31,7 +31,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0; 
+int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ils=0; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -106,7 +106,9 @@ void read_parameters(int argc, char *argv[]) {
       fi=1;
     } else if (strcmp(argv[i], "--re") == 0) {
       re=1;
-    }else{
+    } else if (strcmp(argv[i], "--ils") == 0) {
+      ils=1;
+    } else {
       printf("\nERROR: parameter %s not recognized.\n",argv[i]);
       usage();
       exit( EXIT_FAILURE );
@@ -385,7 +387,7 @@ void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
   free(redundant_sets);
 }
 
-int first_improvement(int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
+int find_improvement(int * type, int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       memcpy(work_subsets, x, n * sizeof(int));
@@ -398,48 +400,72 @@ int first_improvement(int * work_subsets, int * work_elems, int * x, int * y, in
       if (cost < current_cost) {
         memcpy(x, work_subsets, n * sizeof(int));
         memcpy(y, work_elems, m * sizeof(int));
-        return cost;
+        if (strcmp(type, "first") == 0) {
+          return cost;
+        }
       }
     }
   }
   return current_cost;
 }
 
-int best_improvement(int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
-  for (int i = 0; i < n; ++i) {
-    if (x[i]) {
-      memcpy(work_subsets, x, n * sizeof(int));
-      memcpy(work_elems, y, m * sizeof(int));
-      remove_subset(i, work_subsets, work_elems);
-      __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
-      construction_search(random_pick_element, pick_subset, work_subsets, work_elems);
-      free_callback(pick_subset);
-      int cost = compute_cost(work_subsets);
-      if (cost < current_cost) {
-        memcpy(x, work_subsets, n * sizeof(int));
-        memcpy(y, work_elems, m * sizeof(int));
-        // current_cost = cost;
-      }
-    }
-  }
-  return current_cost;
-
-}
-
-void perturbative_search(int (*improvement_function)(int*, int*, int*, int*, int), int * x, int * y) {
+void perturbative_search(int * type, int * x, int * y) {
   int current_cost = compute_cost(x);
   bool improvement;
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
   do {
     improvement = false;
-    int cost = improvement_function(work_subsets, work_elems, x, y, current_cost);
+    int cost = find_improvement(type, work_subsets, work_elems, x, y, current_cost);
     if (cost < current_cost) {
       improvement = true;
       current_cost = cost;
     }
     eliminate_redundancy(static_cost, x, y);
   } while (improvement);
+  free(work_elems);
+  free(work_subsets);
+}
+
+void random_perturbation(int * x, int * y) {
+  int subset_to_remove;
+  do {
+    subset_to_remove = rand() % n;
+  } while (!x[subset_to_remove]);
+  int subset_to_add;
+  do {
+    subset_to_add = rand() % n;
+  } while (x[subset_to_add]);
+  remove_subset(subset_to_remove, x, y);
+  add_subset(subset_to_add, x, y); 
+}
+
+void perturbate(int * x, int * y, int n) {
+  for (int i = 0; i < n; ++i) {
+    random_perturbation(x, y);
+  }
+  eliminate_redundancy(static_cost, x, y);
+}
+
+void iterated_local_search(int * x, int * y, int steps) {
+  __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
+  construction_search(random_pick_element, pick_subset, x, y);
+  free_callback(pick_subset);
+  int * work_subsets = mymalloc(n * sizeof(int));
+  int * work_elems = mymalloc(m * sizeof(int));
+  int min_cost = compute_cost(x);
+  for (int i = 0; i < steps; ++i) {
+    memcpy(work_subsets, x, n * sizeof(int));
+    memcpy(work_elems, y, m * sizeof(int));
+    perturbate(work_subsets, work_elems, 2);
+    perturbative_search("best", work_subsets, work_elems);
+    int cost = compute_cost(work_subsets);
+    if (cost < min_cost) {
+      memcpy(x, work_subsets, n * sizeof(int));
+      memcpy(y, work_elems, m * sizeof(int));
+      min_cost = cost;
+    }
+  }
   free(work_elems);
   free(work_subsets);
 }
@@ -554,10 +580,13 @@ int main(int argc, char *argv[]) {
     eliminate_redundancy(static_cost, x, y);
   }
   if (fi) {
-    perturbative_search(first_improvement, x, y);
+    perturbative_search("first", x, y);
   }
   else if (bi) {
-    perturbative_search(best_improvement, x, y);
+    perturbative_search("best", x, y);
+  }
+  else if (ils) {
+    iterated_local_search(x, y, 10);
   }
   // compute_solution_variables();
   print_solution();
