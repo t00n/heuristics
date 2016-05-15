@@ -411,7 +411,7 @@ void eliminate_redundancy(int * x, int * y) {
 
 // this functions finds a neighbour that improves the cost. It is parametrized by the type : "first" or "best" to find the first or best improvement respectively
 int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
-  // remove each subset from the solution one at a time and construct a new solution
+  // remove each subset from the solution one at a time and construct a new solution. This gives a neighbour
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       memcpy(work_subsets, x, n * sizeof(int));
