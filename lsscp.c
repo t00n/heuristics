@@ -179,6 +179,7 @@ void read_scp(char *filename) {
   free((void *)k);
 }
 
+// pick a non covered element at random
 int random_pick_element(int * y) {
   int elem;
   do {
@@ -188,6 +189,7 @@ int random_pick_element(int * y) {
   return elem;
 }
 
+// add elem to the solution if non covered
 int add_elem(int elem, int * y) {
   if (!y[elem]) {
     y[elem] = true;
@@ -196,6 +198,7 @@ int add_elem(int elem, int * y) {
   return 0;
 }
 
+// check in the solution x if the elem in subset is redundant
 bool elem_is_redundant(int elem, int subset, int * x) {
   for (int i = 0; i < n; ++i) {
     if (i != subset && x[i]) {
@@ -208,6 +211,7 @@ bool elem_is_redundant(int elem, int subset, int * x) {
   return false;
 }
 
+// check in the solution x if the subset is redundant
 bool subset_is_redundant(int subset, int * x) {
   for (int i = 0; i < nelement[subset]; ++i) {
     int elem = element[subset][i];
@@ -218,6 +222,7 @@ bool subset_is_redundant(int subset, int * x) {
   return true;
 }
 
+// remove elem from the solution if covered
 int remove_elem(int elem, int * y) {
   if (y[elem]) {
     y[elem] = false;
@@ -226,6 +231,7 @@ int remove_elem(int elem, int * y) {
   return 0;
 }
 
+// add every non covered elem of subset to the solution
 int add_subset_elems(int subset, int * y) {
   int total = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
@@ -236,10 +242,12 @@ int add_subset_elems(int subset, int * y) {
   return total;
 }
 
+// remove every covered elem of subset from the solution
 int remove_subset_elems(int subset, int * x, int * y) {
   int total = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
     int elem = element[subset][i];
+    // remove an elem only if it is not redundant
     if (!elem_is_redundant(elem, subset, x) && remove_elem(elem, y)) {
       total++;
     }
@@ -247,6 +255,7 @@ int remove_subset_elems(int subset, int * x, int * y) {
   return total;
 }
 
+// add subset and its elements to the solution
 int add_subset(int subset, int * x, int * y) {
   if (!x[subset]) {
     x[subset] = true;
@@ -256,6 +265,7 @@ int add_subset(int subset, int * x, int * y) {
   return 0;
 }
 
+// remove subset and its elements from the solution
 int remove_subset(int subset, int * x, int * y) {
   if (x[subset]) {
     x[subset] = false;
@@ -265,6 +275,7 @@ int remove_subset(int subset, int * x, int * y) {
   return 0;
 }
 
+// compute the raw cost of the solution x
 int compute_cost(int * x) {
   int total = 0;
   for (int i = 0; i < n; ++i) {
@@ -275,7 +286,7 @@ int compute_cost(int * x) {
   return total;
 }
 
-int compute_subsets(int * x) {
+int size_subsets(int * x) {
   int total = 0;
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
@@ -285,7 +296,7 @@ int compute_subsets(int * x) {
   return total;
 }
 
-int compute_elems(int * y) {
+int size_elems(int * y) {
   int total = 0;
   for (int i = 0; i < m; ++i) {
     if (y[i]) {
@@ -295,8 +306,9 @@ int compute_elems(int * y) {
   return total;
 }
 
+// generic construction search. use the function pointers pick_elem and pick_subset to respectively pick a non covered element and a subset that covers this element
 void construction_search(int (*pick_elem)(), int (*pick_subset)(int, int*), int * x, int * y) {
-  int nelements_picked = compute_elems(y);
+  int nelements_picked = size_elems(y);
   while (nelements_picked < m) {
     int elem = pick_elem(y);
     nelements_picked += add_elem(elem, y);
@@ -305,6 +317,7 @@ void construction_search(int (*pick_elem)(), int (*pick_subset)(int, int*), int 
   }
 }
 
+// pick a subset that covers elem at random
 int random_pick_subset(int elem, int * x) {
   int * available_subsets = subset[elem];
   int navailable_subsets = nsubset[elem];
@@ -315,6 +328,7 @@ int random_pick_subset(int elem, int * x) {
   return subset;
 }
 
+// pick the subset that covers elem with the best cost using the cost_function pointer
 int greedy_pick_subset(cost_function, alist) 
   float (*cost_function)(int, int*);
   va_alist alist;
@@ -341,14 +355,17 @@ __TR_function greedy_pick_subset_generator(float (*cost_function)(int, int*)) {
   return alloc_callback(&greedy_pick_subset, cost_function);
 }
 
+// static cost of subset
 float static_cost(int subset, int * y) {
   return cost[subset];
 }
 
+// static cost divided by static cover
 float static_cover_cost(int subset, int * y) {
   return (float) cost[subset] / (float)nelement[subset];
 }
 
+// static cost divided by adapted cover
 float adapted_cover_cost(int subset, int * y) {
   int count = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
@@ -359,6 +376,7 @@ float adapted_cover_cost(int subset, int * y) {
   return (float)cost[subset] / (float)count;
 }
 
+// put redundant subsets of x in res
 int find_redundant_subsets(int * res, int * x) {
   int count = 0;
   for (int i = 0; i < n; ++i) {
@@ -369,8 +387,9 @@ int find_redundant_subsets(int * res, int * x) {
   return count;
 }
 
+// remove redundant sets from x, beginning with highest cost (use cost_function function pointer)
 void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
-  int * redundant_sets = mymalloc(compute_subsets(x) * sizeof(int));
+  int * redundant_sets = mymalloc(size_subsets(x) * sizeof(int));
   int nredundant_sets;
   do {
     nredundant_sets = find_redundant_subsets(redundant_sets, x);
@@ -390,7 +409,9 @@ void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
   free(redundant_sets);
 }
 
+// this functions finds a neighbour that improves the cost. It is parametrized by the type : "first" or "best" to find the first or best improvement respectively
 int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
+  // remove each subset from the solution one at a time and construct a new solution
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       memcpy(work_subsets, x, n * sizeof(int));
@@ -412,6 +433,7 @@ int find_improvement(char * type, int * work_subsets, int * work_elems, int * x,
   return current_cost;
 }
 
+// performs a perturbative search to find a local minimum
 void perturbative_search(char * type, int * x, int * y) {
   int current_cost = compute_cost(x);
   bool improvement;
@@ -430,18 +452,18 @@ void perturbative_search(char * type, int * x, int * y) {
   free(work_subsets);
 }
 
+// remove one element at random and then complete the solution at random
 void random_move(int * x, int * y) {
   int subset_to_remove;
   do {
     subset_to_remove = rand() % n;
   } while (!x[subset_to_remove]);
-  // remove one element at random and then complete the solution at random
   remove_subset(subset_to_remove, x, y);
   construction_search(random_pick_element, random_pick_subset, x, y);
 }
 
+// apply n random move then remove redundant sets
 void perturbate(int * x, int * y, int n) {
-  // apply n random move then remove redundant sets
   for (int i = 0; i < n; ++i) {
     random_move(x, y);
   }
@@ -508,13 +530,13 @@ void print_instance(int level){
 void print_solution(int * x, int * y) {
   // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
   printf("Solution cost : %d\n", compute_cost(x));
-  printf("Solution : %d subsets\n", compute_subsets(x));
+  printf("Solution : %d subsets\n", size_subsets(x));
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       printf("%d, ", i);
     }
   }
-  printf("\nSolution : %d elements\n", compute_elems(y));
+  printf("\nSolution : %d elements\n", size_elems(y));
   for (int i = 0; i < m; ++i) {
     if (y[i]) printf("%d ", i);
   }
