@@ -599,6 +599,10 @@ void print_solution(int * x, int * y) {
   printf("\n");
 }
 
+void print_cost(int * x) {
+  printf("%d\n", compute_cost(x));
+}
+
 /*** Use this function to initialize other variables of the algorithms **/
 void initialize(){
   x = mymalloc(n * sizeof(int));
@@ -633,7 +637,7 @@ int main(int argc, char *argv[]) {
   read_parameters(argc, argv);
   srand(seed); /*set seed */
   read_scp(scp_file);
-  print_instance(0);
+  // print_instance(0);
   initialize();
   // The four construction searches. The only difference is the cost computation technique
   if (ch1) {
@@ -664,7 +668,8 @@ int main(int argc, char *argv[]) {
     dynamic_local_search(x, y, iter);
   }
   // compute_solution_variables();
-  print_solution(x, y);
+  // print_solution(x, y);
+  print_cost(x);
   finalize();
   return EXIT_SUCCESS;
 }
