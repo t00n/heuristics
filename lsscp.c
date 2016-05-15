@@ -31,7 +31,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ils=0; 
+int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ils=0, iter=100; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -108,6 +108,9 @@ void read_parameters(int argc, char *argv[]) {
       re=1;
     } else if (strcmp(argv[i], "--ils") == 0) {
       ils=1;
+    } else if (strcmp(argv[i], "--iter") == 0) {
+      iter=atoi(argv[i+1]);
+      i+=1;
     } else {
       printf("\nERROR: parameter %s not recognized.\n",argv[i]);
       usage();
@@ -567,7 +570,7 @@ int main(int argc, char *argv[]) {
     perturbative_search("best", x, y);
   }
   else if (ils) {
-    iterated_local_search(x, y, 1000);
+    iterated_local_search(x, y, iter);
   }
   // compute_solution_variables();
   print_solution(x, y);
