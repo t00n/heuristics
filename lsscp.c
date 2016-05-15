@@ -430,36 +430,44 @@ void perturbative_search(char * type, int * x, int * y) {
   free(work_subsets);
 }
 
-void random_perturbation(int * x, int * y) {
+void random_move(int * x, int * y) {
   int subset_to_remove;
   do {
     subset_to_remove = rand() % n;
   } while (!x[subset_to_remove]);
+  // remove one element at random and then complete the solution at random
   remove_subset(subset_to_remove, x, y);
   construction_search(random_pick_element, random_pick_subset, x, y);
 }
 
 void perturbate(int * x, int * y, int n) {
+  // apply n random move then remove redundant sets
   for (int i = 0; i < n; ++i) {
-    random_perturbation(x, y);
+    random_move(x, y);
   }
   eliminate_redundancy(static_cost, x, y);
 }
 
 void iterated_local_search(int * x, int * y, int steps) {
+  // generate inital solution
   __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
   construction_search(random_pick_element, pick_subset, x, y);
-  perturbative_search("best", x, y);
   free_callback(pick_subset);
+  // perform a local search
+  perturbative_search("best", x, y);
+  // work variables
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
   int min_cost = compute_cost(x);
   for (int i = 0; i < steps; ++i) {
     memcpy(work_subsets, x, n * sizeof(int));
     memcpy(work_elems, y, m * sizeof(int));
+    // random 2-move
     perturbate(work_subsets, work_elems, 2);
+    // local search
     perturbative_search("best", work_subsets, work_elems);
     int cost = compute_cost(work_subsets);
+    // save new solution if better
     if (cost < min_cost) {
       memcpy(x, work_subsets, n * sizeof(int));
       memcpy(y, work_elems, m * sizeof(int));
@@ -540,8 +548,9 @@ int main(int argc, char *argv[]) {
   read_parameters(argc, argv);
   srand(seed); /*set seed */
   read_scp(scp_file);
-  print_instance(1);
+  print_instance(0);
   initialize();
+  // The four construction searches. The only difference is the cost computation technique
   if (ch1) {
     construction_search(random_pick_element, random_pick_subset, x, y);
   }
