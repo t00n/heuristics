@@ -55,6 +55,7 @@ int fx;           /* sum of the cost of the subsets selected in the solution (ca
 /**       or when a complete solution is modified*/
 int *subset_cover;   /* subset_subsetver[i] selected subsets that cover element i */
 int nsubset_cover;   /* number of selected subsets that cover element i */
+__TR_function static_cost_greedy, static_cover_cost_greedy, adapted_cover_cost_greedy;
 
 void usage(){
     printf("\nUSAGE: lsscp [param_name, param_value] [options]...\n");
@@ -417,9 +418,7 @@ int find_improvement(char * type, int * work_subsets, int * work_elems, int * x,
       memcpy(work_subsets, x, n * sizeof(int));
       memcpy(work_elems, y, m * sizeof(int));
       remove_subset(i, work_subsets, work_elems);
-      __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
-      construction_search(random_pick_element, pick_subset, work_subsets, work_elems);
-      free_callback(pick_subset);
+      construction_search(random_pick_element, static_cover_cost_greedy, work_subsets, work_elems);
       int cost = compute_cost(work_subsets);
       if (cost < current_cost) {
         memcpy(x, work_subsets, n * sizeof(int));
@@ -453,28 +452,26 @@ void perturbative_search(char * type, int * x, int * y) {
 }
 
 // remove one element at random and then complete the solution at random
-void random_move(int * x, int * y) {
+void reconstruct2(int * x, int * y) {
   int subset_to_remove;
   do {
     subset_to_remove = rand() % n;
   } while (!x[subset_to_remove]);
   remove_subset(subset_to_remove, x, y);
-  construction_search(random_pick_element, random_pick_subset, x, y);
+  construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
 }
 
 // apply n random move then remove redundant sets
-void perturbate(int * x, int * y, int n) {
+void reconstruct(int * x, int * y, int n) {
   for (int i = 0; i < n; ++i) {
-    random_move(x, y);
+    reconstruct2(x, y);
   }
   eliminate_redundancy(x, y);
 }
 
-void iterated_local_search(int * x, int * y, int steps) {
+void iterated_greedy(int * x, int * y, int steps) {
   // generate inital solution
-  __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
-  construction_search(random_pick_element, pick_subset, x, y);
-  free_callback(pick_subset);
+  construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
   // perform a local search
   perturbative_search("best", x, y);
   // work variables
@@ -485,7 +482,7 @@ void iterated_local_search(int * x, int * y, int steps) {
     memcpy(work_subsets, x, n * sizeof(int));
     memcpy(work_elems, y, m * sizeof(int));
     // random 2-move
-    perturbate(work_subsets, work_elems, 2);
+    reconstruct(work_subsets, work_elems, 1);
     // local search
     perturbative_search("best", work_subsets, work_elems);
     int cost = compute_cost(work_subsets);
@@ -553,6 +550,9 @@ void initialize(){
     y[i] = false;
   }
   fx = 0;
+  static_cost_greedy = greedy_pick_subset_generator(static_cost);
+  static_cover_cost_greedy = greedy_pick_subset_generator(static_cover_cost);
+  adapted_cover_cost_greedy = greedy_pick_subset_generator(adapted_cover_cost);
 }
 // 
 /*** Use this function to finalize execution */
@@ -564,6 +564,9 @@ void finalize(){
   free(cost);
   free(y);
   free(x);
+  free_callback(adapted_cover_cost_greedy);
+  free_callback(static_cover_cost_greedy);
+  free_callback(static_cost_greedy);
 }
 
 int main(int argc, char *argv[]) {
@@ -577,19 +580,13 @@ int main(int argc, char *argv[]) {
     construction_search(random_pick_element, random_pick_subset, x, y);
   }
   else if (ch2) {
-    __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
-    construction_search(random_pick_element, pick_subset, x, y);
-    free_callback(pick_subset);
+    construction_search(random_pick_element, static_cost_greedy, x, y);
   }
   else if (ch3) {
-    __TR_function pick_subset = greedy_pick_subset_generator(static_cover_cost);
-    construction_search(random_pick_element, pick_subset, x, y);
-    free_callback(pick_subset);
+    construction_search(random_pick_element, static_cover_cost_greedy, x, y);
   }
   else if (ch4) {
-    __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
-    construction_search(random_pick_element, pick_subset, x, y);
-    free_callback(pick_subset);
+    construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
   }
   if (re) {
     eliminate_redundancy(x, y);
@@ -601,7 +598,7 @@ int main(int argc, char *argv[]) {
     perturbative_search("best", x, y);
   }
   else if (ils) {
-    iterated_local_search(x, y, iter);
+    iterated_greedy(x, y, iter);
   }
   // compute_solution_variables();
   print_solution(x, y);
