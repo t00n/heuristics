@@ -387,7 +387,7 @@ void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
   free(redundant_sets);
 }
 
-int find_improvement(int * type, int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
+int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       memcpy(work_subsets, x, n * sizeof(int));
@@ -409,7 +409,7 @@ int find_improvement(int * type, int * work_subsets, int * work_elems, int * x, 
   return current_cost;
 }
 
-void perturbative_search(int * type, int * x, int * y) {
+void perturbative_search(char * type, int * x, int * y) {
   int current_cost = compute_cost(x);
   bool improvement;
   int * work_subsets = mymalloc(n * sizeof(int));
