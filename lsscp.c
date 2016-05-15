@@ -416,7 +416,8 @@ void eliminate_redundancy(int * x, int * y) {
 }
 
 // this functions finds a neighbour that improves the cost. It is parametrized by the type : "first" or "best" to find the first or best improvement respectively
-int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int current_cost) {
+int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int (*cost_function)(int*)) {
+  int current_cost = cost_function(work_subsets);
   // remove each subset from the solution one at a time and construct a new solution. This gives a neighbour
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
@@ -424,7 +425,7 @@ int find_improvement(char * type, int * work_subsets, int * work_elems, int * x,
       memcpy(work_elems, y, m * sizeof(int));
       remove_subset(i, work_subsets, work_elems);
       construction_search(random_pick_element, static_cover_cost_greedy, work_subsets, work_elems);
-      int cost = compute_cost(work_subsets);
+      int cost = cost_function(work_subsets);
       if (cost < current_cost) {
         memcpy(x, work_subsets, n * sizeof(int));
         memcpy(y, work_elems, m * sizeof(int));
@@ -438,14 +439,14 @@ int find_improvement(char * type, int * work_subsets, int * work_elems, int * x,
 }
 
 // performs a perturbative search to find a local minimum
-void perturbative_search(char * type, int * x, int * y) {
-  int current_cost = compute_cost(x);
+void perturbative_search(char * type, int * x, int * y, int (*cost_function)(int*)) {
+  int current_cost = cost_function(x);
   bool improvement;
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
   do {
     improvement = false;
-    int cost = find_improvement(type, work_subsets, work_elems, x, y, current_cost);
+    int cost = find_improvement(type, work_subsets, work_elems, x, y, cost_function);
     if (cost < current_cost) {
       improvement = true;
       current_cost = cost;
@@ -478,7 +479,7 @@ void iterated_greedy(int * x, int * y, int steps) {
   // generate inital solution
   construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
   // perform a local search
-  perturbative_search("best", x, y);
+  perturbative_search("best", x, y, compute_cost);
   // work variables
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
@@ -489,7 +490,7 @@ void iterated_greedy(int * x, int * y, int steps) {
     // random 2-move
     reconstruct(work_subsets, work_elems, 1);
     // local search
-    perturbative_search("best", work_subsets, work_elems);
+    perturbative_search("best", work_subsets, work_elems, compute_cost);
     int cost = compute_cost(work_subsets);
     // save new solution if better
     if (cost < min_cost) {
@@ -500,6 +501,63 @@ void iterated_greedy(int * x, int * y, int steps) {
   }
   free(work_elems);
   free(work_subsets);
+}
+
+int dynamic_cost(penalties, alist) 
+  int * penalties;
+  va_alist alist;
+{
+  va_start_int(alist);
+  int * x = va_arg_ptr(alist, int *);
+  float res = compute_cost(x);
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      res += penalties[i] * (float)cost[i];
+    }
+  }
+  va_return_int(alist, res);
+  return 0;
+}
+
+// [Voudouris and Tsang, 1995] 
+void update_penalties(int * x, int * penalties) {
+  int total_cost = compute_cost(x);
+  float utility(int i) {
+    return ((float)total_cost/(float)cost[i]) / (1 + (float)penalties[i]);
+  }
+  int max_i = -1;
+  float max_utility = 0;
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      float util = utility(i);
+      if (util > max_utility) {
+        max_utility = util;
+        max_i = i;
+      }
+    }
+  }
+  penalties[max_i] += 1;
+}
+
+void dynamic_local_search(int * x, int * y, int steps) {
+  construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
+  int * penalties = mymalloc(n * sizeof(int));
+  int * work_subsets = mymalloc(n * sizeof(int));
+  int * work_elems = mymalloc(m * sizeof(int));
+  __TR_function cost_function = alloc_callback(&dynamic_cost, penalties);
+  for (int i = 0; i < n; ++i) {
+    penalties[i] = 0;
+  }
+  do {
+    memcpy(work_subsets, x, n * sizeof(int));
+    memcpy(work_elems, y, m * sizeof(int));
+    perturbative_search("best", work_subsets, work_elems, cost_function);
+    update_penalties(work_subsets, penalties);
+    steps--;
+  } while (steps > 0);
+  free_callback(cost_function);
+  memcpy(x, work_subsets, n * sizeof(int));
+  memcpy(y, work_elems, m * sizeof(int));
 }
 
 /*** Use level>=1 to print more info (check the correct reading) */ 
