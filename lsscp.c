@@ -509,10 +509,10 @@ int dynamic_cost(penalties, alist)
 {
   va_start_int(alist);
   int * x = va_arg_ptr(alist, int *);
-  float res = compute_cost(x);
+  int res = 0;
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
-      res += penalties[i] * (float)cost[i];
+      res += penalties[i] * cost[i];
     }
   }
   va_return_int(alist, res);
@@ -525,39 +525,35 @@ void update_penalties(int * x, int * penalties) {
   float utility(int i) {
     return ((float)total_cost/(float)cost[i]) / (1 + (float)penalties[i]);
   }
-  int max_i = -1;
   float max_utility = 0;
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       float util = utility(i);
       if (util > max_utility) {
         max_utility = util;
-        max_i = i;
       }
     }
   }
-  penalties[max_i] += 1;
+  for (int i = 0; i < n; ++i) {
+    if (x[i] && utility(i) >= max_utility) {
+      penalties[i] += 1;
+    }
+  }
 }
 
 void dynamic_local_search(int * x, int * y, int steps) {
   construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
   int * penalties = mymalloc(n * sizeof(int));
-  int * work_subsets = mymalloc(n * sizeof(int));
-  int * work_elems = mymalloc(m * sizeof(int));
   __TR_function cost_function = alloc_callback(&dynamic_cost, penalties);
   for (int i = 0; i < n; ++i) {
     penalties[i] = 0;
   }
   do {
-    memcpy(work_subsets, x, n * sizeof(int));
-    memcpy(work_elems, y, m * sizeof(int));
-    perturbative_search("best", work_subsets, work_elems, cost_function);
-    update_penalties(work_subsets, penalties);
+    perturbative_search("best", x, y, cost_function);
+    update_penalties(x, penalties);
     steps--;
   } while (steps > 0);
   free_callback(cost_function);
-  memcpy(x, work_subsets, n * sizeof(int));
-  memcpy(y, work_elems, m * sizeof(int));
 }
 
 /*** Use level>=1 to print more info (check the correct reading) */ 
@@ -596,10 +592,11 @@ void print_solution(int * x, int * y) {
       printf("%d, ", i);
     }
   }
-  printf("\nSolution : %d elements\n", size_elems(y));
-  for (int i = 0; i < m; ++i) {
-    if (y[i]) printf("%d ", i);
-  }
+  // printf("\nSolution : %d elements", size_elems(y));
+  // for (int i = 0; i < m; ++i) {
+  //   if (y[i]) printf("%d ", i);
+  // }
+  printf("\n");
 }
 
 /*** Use this function to initialize other variables of the algorithms **/
