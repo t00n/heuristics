@@ -31,7 +31,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ils=0, iter=100; 
+int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ig=0, dls=0, iter=100; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -70,6 +70,9 @@ void usage(){
     printf("  --ch4: adapted cover cost-based greedy values\n");
     printf("  --re: applies redundancy elimination after construction.\n");
     printf("  --bi: best improvement.\n");
+    printf("  --ig: iterated greedy\n");
+    printf("  --dls: dynamic local search\n");
+    printf("  --iter: number of iterations for SLS methods\n");
     printf("\n");
 }
 
@@ -107,8 +110,10 @@ void read_parameters(int argc, char *argv[]) {
       fi=1;
     } else if (strcmp(argv[i], "--re") == 0) {
       re=1;
-    } else if (strcmp(argv[i], "--ils") == 0) {
-      ils=1;
+    } else if (strcmp(argv[i], "--ig") == 0) {
+      ig=1;
+    } else if (strcmp(argv[i], "--dls") == 0) {
+      dls=1;
     } else if (strcmp(argv[i], "--iter") == 0) {
       iter=atoi(argv[i+1]);
       i+=1;
@@ -592,13 +597,16 @@ int main(int argc, char *argv[]) {
     eliminate_redundancy(x, y);
   }
   if (fi) {
-    perturbative_search("first", x, y);
+    perturbative_search("first", x, y, compute_cost);
   }
   else if (bi) {
-    perturbative_search("best", x, y);
+    perturbative_search("best", x, y, compute_cost);
   }
-  else if (ils) {
+  else if (ig) {
     iterated_greedy(x, y, iter);
+  }
+  else if (dls) {
+    dynamic_local_search(x, y, iter);
   }
   // compute_solution_variables();
   print_solution(x, y);
