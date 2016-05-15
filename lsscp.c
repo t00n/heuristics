@@ -432,12 +432,8 @@ void random_perturbation(int * x, int * y) {
   do {
     subset_to_remove = rand() % n;
   } while (!x[subset_to_remove]);
-  int subset_to_add;
-  do {
-    subset_to_add = rand() % n;
-  } while (x[subset_to_add]);
   remove_subset(subset_to_remove, x, y);
-  add_subset(subset_to_add, x, y); 
+  construction_search(random_pick_element, random_pick_subset, x, y);
 }
 
 void perturbate(int * x, int * y, int n) {
@@ -450,6 +446,7 @@ void perturbate(int * x, int * y, int n) {
 void iterated_local_search(int * x, int * y, int steps) {
   __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
   construction_search(random_pick_element, pick_subset, x, y);
+  perturbative_search("best", x, y);
   free_callback(pick_subset);
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
@@ -469,26 +466,6 @@ void iterated_local_search(int * x, int * y, int steps) {
   free(work_elems);
   free(work_subsets);
 }
-
-// bool is_admissible_solution() {
-//   bool * all_elems = mymalloc(m * sizeof(bool));
-//   for (int i = 0; i < nsubset_cover; ++i) {
-//     int subset_i = subset_cover[i];
-//     for (int j = 0; j < nsubset[subset_i]; ++j) {
-//       int elem = element[subset_i][j];
-//       all_elems[elem] = true;
-//     }
-//   }
-//   bool res = true;
-//   for (int i = 0; i < m; ++i) {
-//     if (all_elems[i] == false) {
-//       res = false;
-//       break;
-//     }
-//   }
-//   free(all_elems);
-//   return res;
-// }
 
 /*** Use level>=1 to print more info (check the correct reading) */ 
 void print_instance(int level){
@@ -517,7 +494,7 @@ void print_instance(int level){
 
 }
 
-void print_solution() {
+void print_solution(int * x, int * y) {
   // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
   printf("Solution cost : %d\n", compute_cost(x));
   printf("Solution : %d subsets\n", compute_subsets(x));
@@ -525,6 +502,10 @@ void print_solution() {
     if (x[i]) {
       printf("%d, ", i);
     }
+  }
+  printf("\nSolution : %d elements\n", compute_elems(y));
+  for (int i = 0; i < m; ++i) {
+    if (y[i]) printf("%d ", i);
   }
 }
 
@@ -586,10 +567,10 @@ int main(int argc, char *argv[]) {
     perturbative_search("best", x, y);
   }
   else if (ils) {
-    iterated_local_search(x, y, 10);
+    iterated_local_search(x, y, 1000);
   }
   // compute_solution_variables();
-  print_solution();
+  print_solution(x, y);
   finalize();
   return EXIT_SUCCESS;
 }
