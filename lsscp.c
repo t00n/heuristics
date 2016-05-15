@@ -388,7 +388,7 @@ int find_redundant_subsets(int * res, int * x) {
 }
 
 // remove redundant sets from x, beginning with highest cost (use cost_function function pointer)
-void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
+void eliminate_redundancy(int * x, int * y) {
   int * redundant_sets = mymalloc(size_subsets(x) * sizeof(int));
   int nredundant_sets;
   do {
@@ -396,9 +396,9 @@ void eliminate_redundancy(float (*cost_function)(int, int*), int * x, int * y) {
     int max_cost = 0;
     int max_set = -1;
     for (int i = 0; i < nredundant_sets; ++i) {
-      int cost = cost_function(redundant_sets[i], y);
-      if (cost > max_cost) {
-        max_cost = cost;
+      int current_cost = cost[redundant_sets[i]];
+      if (current_cost > max_cost) {
+        max_cost = current_cost;
         max_set = redundant_sets[i];
       }
     }
@@ -446,7 +446,7 @@ void perturbative_search(char * type, int * x, int * y) {
       improvement = true;
       current_cost = cost;
     }
-    eliminate_redundancy(static_cost, x, y);
+    eliminate_redundancy(x, y);
   } while (improvement);
   free(work_elems);
   free(work_subsets);
@@ -467,12 +467,12 @@ void perturbate(int * x, int * y, int n) {
   for (int i = 0; i < n; ++i) {
     random_move(x, y);
   }
-  eliminate_redundancy(static_cost, x, y);
+  eliminate_redundancy(x, y);
 }
 
 void iterated_local_search(int * x, int * y, int steps) {
   // generate inital solution
-  __TR_function pick_subset = greedy_pick_subset_generator(adapted_cover_cost);
+  __TR_function pick_subset = greedy_pick_subset_generator(static_cost);
   construction_search(random_pick_element, pick_subset, x, y);
   free_callback(pick_subset);
   // perform a local search
@@ -592,7 +592,7 @@ int main(int argc, char *argv[]) {
     free_callback(pick_subset);
   }
   if (re) {
-    eliminate_redundancy(static_cost, x, y);
+    eliminate_redundancy(x, y);
   }
   if (fi) {
     perturbative_search("first", x, y);
