@@ -31,7 +31,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ig=0, dls=0, gen=0, iter=100; 
+int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ig=0, dls=0, gen=0, t=100; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -73,7 +73,7 @@ void usage(){
     printf("  --ig: iterated greedy\n");
     printf("  --dls: dynamic local search\n");
     printf("  --gen: genetic algorithm\n");
-    printf("  --iter: number of iterations for SLS methods\n");
+    printf("  --t: time to run for SLS methods\n");
     printf("\n");
 }
 
@@ -117,8 +117,8 @@ void read_parameters(int argc, char *argv[]) {
       dls=1;
     } else if (strcmp(argv[i], "--gen") == 0) {
       gen=1;
-    } else if (strcmp(argv[i], "--iter") == 0) {
-      iter=atoi(argv[i+1]);
+    } else if (strcmp(argv[i], "--t") == 0) {
+      t=atoi(argv[i+1]);
       i+=1;
     } else {
       printf("\nERROR: parameter %s not recognized.\n",argv[i]);
@@ -595,10 +595,11 @@ bool is_duplicate(int * elem, int ** list, int elem_size, int list_size) {
   return false;
 }
 
-void genetic_algorithm(int * x, int * y, int steps) {
+void genetic_algorithm(int * x, int * y, int t) {
   int population_size = 100;
   int T = 2;
-  float mutation_rate = 1.0/(float)population_size;
+  float mutation_rate = 2.0/(float)population_size;
+  float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
   // Generate initial population using random construction search
   int ** population = mymalloc(population_size * sizeof(int*));
   int * dummy_elements = mymalloc(m * sizeof(int));
@@ -609,8 +610,6 @@ void genetic_algorithm(int * x, int * y, int steps) {
     }
     construction_search(random_pick_element, random_pick_subset, population[i], dummy_elements);
     perturbative_search("first", population[i], dummy_elements, compute_cost);
-    // print_solution(population[i], dummy_elements);
-    // printf("meme pas ici\n");
   }
   // Compute costs for the initial population
   int * population_cost = mymalloc(population_size * sizeof(int));
@@ -619,7 +618,7 @@ void genetic_algorithm(int * x, int * y, int steps) {
   }
   int * picked = mymalloc(population_size * sizeof(int));
   int * children = mymalloc(n * sizeof(int));
-  while (steps > 0) {
+  do {
     for (int i = 0; i < population_size; ++i) {
       picked[i] = 0;
     }
@@ -675,9 +674,8 @@ void genetic_algorithm(int * x, int * y, int steps) {
     if (!is_duplicate(children, population, n, population_size)) {
       memcpy(population[parent_to_replace], children, n * sizeof(int));
       population_cost[parent_to_replace] = children_cost;  
-      steps--;
     }
-  }
+  } while ((clock()/CLOCKS_PER_SEC) - start < stop);
   free(children);
   free(picked);
   // Find best solution of population
@@ -805,13 +803,13 @@ int main(int argc, char *argv[]) {
     perturbative_search("best", x, y, compute_cost);
   }
   else if (ig) {
-    iterated_greedy(x, y, iter);
+    iterated_greedy(x, y, t);
   }
   else if (dls) {
-    dynamic_local_search(x, y, iter);
+    dynamic_local_search(x, y, t);
   }
   else if (gen) {
-    genetic_algorithm(x, y, iter);
+    genetic_algorithm(x, y, t);
   }
   // compute_solution_variables();
   // print_solution(x, y);
