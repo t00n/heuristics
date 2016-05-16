@@ -663,7 +663,15 @@ void genetic_algorithm(int * x, int * y, int steps) {
     // evaluate children
     int children_cost = compute_cost(children);
     // replace some parents by children
-    int parent_to_replace = rand() % population_size;
+    int parent_to_replace;
+    int mean_cost = 0;
+    for (int i = 0; i < population_size; ++i) {
+      mean_cost += population_cost[i];
+    }
+    mean_cost /= population_size;
+    do {
+      parent_to_replace = rand() % population_size;
+    } while (population_cost[parent_to_replace] < mean_cost);
     if (!is_duplicate(children, population, n, population_size)) {
       memcpy(population[parent_to_replace], children, n * sizeof(int));
       population_cost[parent_to_replace] = children_cost;  
