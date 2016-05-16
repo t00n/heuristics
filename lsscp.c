@@ -20,6 +20,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 
 #include <callback.h>
 
@@ -478,7 +479,7 @@ void reconstruct(int * x, int * y, int n) {
   eliminate_redundancy(x, y);
 }
 
-void iterated_greedy(int * x, int * y, int steps) {
+void iterated_greedy(int * x, int * y, int t) {
   // generate inital solution
   construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
   // perform a local search
@@ -487,7 +488,8 @@ void iterated_greedy(int * x, int * y, int steps) {
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
   int min_cost = compute_cost(x);
-  for (int i = 0; i < steps; ++i) {
+  float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
+  do {
     memcpy(work_subsets, x, n * sizeof(int));
     memcpy(work_elems, y, m * sizeof(int));
     // random 2-move
@@ -501,7 +503,7 @@ void iterated_greedy(int * x, int * y, int steps) {
       memcpy(y, work_elems, m * sizeof(int));
       min_cost = cost;
     }
-  }
+  } while ((clock()/CLOCKS_PER_SEC) - start < stop);
   free(work_elems);
   free(work_subsets);
 }
@@ -660,13 +662,13 @@ void genetic_algorithm(int * x, int * y, int t) {
     int first_parent = tournament_selection(picked, T, population_cost, population_size);
     int second_parent = tournament_selection(picked, T, population_cost, population_size);
     // recombine parents -> children
-    int first_cost = population_cost[first_parent];
-    int second_cost = population_cost[second_parent];
     for (int i = 0; i < n; ++i) {
       if (population[first_parent][i] == population[second_parent][i]) {
         children[i] = population[first_parent][i];
       }
       else {
+        int first_cost = population_cost[first_parent];
+        int second_cost = population_cost[second_parent];
         float p = (float)second_cost / ((float)first_cost + (float)second_cost);
         float dice = (float)rand()/(float)(RAND_MAX);
         if (dice < p) {
@@ -677,6 +679,7 @@ void genetic_algorithm(int * x, int * y, int t) {
         }
       }
     }
+    // Mutate children
     for (int i = 0; i < n; ++i) {
       float dice = (float)rand()/(float)(RAND_MAX);
       if (dice < mutation_rate) {
@@ -693,8 +696,6 @@ void genetic_algorithm(int * x, int * y, int t) {
     }
     construction_search(random_pick_element, adapted_cover_cost_greedy, children, y);
     eliminate_redundancy(children, y);
-    // evaluate children
-    int children_cost = compute_cost(children);
     // replace some parents by children
     if (!is_duplicate(children, population, n, population_size)) {
       int parent_to_replace;
@@ -706,8 +707,10 @@ void genetic_algorithm(int * x, int * y, int t) {
       do {
         parent_to_replace = rand() % population_size;
       } while (population_cost[parent_to_replace] < mean_cost);
-      memcpy(population[parent_to_replace], children, n * sizeof(int));
-      population_cost[parent_to_replace] = children_cost;
+      int * tmp = population[parent_to_replace];
+      population[parent_to_replace] = children;
+      children = tmp;
+      population_cost[parent_to_replace] = compute_cost(population[parent_to_replace]);
     }
   } while ((clock()/CLOCKS_PER_SEC) - start < stop);
   free(children);
@@ -846,6 +849,15 @@ int main(int argc, char *argv[]) {
   }
   // compute_solution_variables();
   // print_solution(x, y);
+  for (int i = 0; i < m; ++i) {
+    y[i] = 0;
+  }
+  for (int i = 0; i < n; ++i) {
+    if (x[i]) {
+      add_subset_elems(i, y);
+    }
+  }
+  assert(size_elems(y) == m);
   print_cost(x);
   finalize();
   return EXIT_SUCCESS;
