@@ -1,2 +1,10 @@
 lsscp
 *.o
+*.aux
+*.loc
+*.bbl
+*.pdf
+*.blg
+*.log
+*.out
+.ipynb_checkpoints/

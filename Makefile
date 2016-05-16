@@ -10,16 +10,16 @@ VER     = `date +%Y%m%d`
 
 ### command and flags ###
 # uncomment when debugging
-DEBUG  = -ggdb -pg # -lefence
+# DEBUG  = -ggdb -pg # -lefence
 
 # common (*.o)
 LD      = gcc
-LDFLAGS = -g $(DEBUG)
+LDFLAGS = $(DEBUG)
 LDLIBS  = -lm
 
 # C (*.c)
 CC      = gcc
-CFLAGS  = -g -O2 -Wall $(DEBUG)
+CFLAGS  = -O2 -Wall $(DEBUG)
 CPPFLAGS= -I.
 
 # command
