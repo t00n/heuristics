@@ -63,6 +63,7 @@ void usage(){
     printf("  --seed : seed to initialize random number generator\n");
     printf("  --instance: SCP instance to execute.\n");
     printf("  --output: Filename for output results.\n");
+    printf("  --t: time to run for SLS methods (in ms)\n");
     printf("Options:\n");
     printf("  --ch1: random solution construction\n");
     printf("  --ch2: static cost-based greedy values.\n");
@@ -73,7 +74,6 @@ void usage(){
     printf("  --ig: iterated greedy\n");
     // printf("  --dls: dynamic local search\n");
     printf("  --gen: genetic algorithm\n");
-    printf("  --t: time to run for SLS methods\n");
     printf("\n");
 }
 
@@ -309,12 +309,10 @@ int size_elems(int * y) {
 
 // generic construction search. use the function pointers pick_elem and pick_subset to respectively pick a non covered element and a subset that covers this element. the cost_function pointer is initialized to the function to compute the cost of a single subset
 void construction_search(int (*pick_elem)(), int (*pick_subset)(float (*)(int, int*), int, int*, int*), int * x, int * y, float (*cost_function)(int, int*)) {
-  int nelements_picked = size_elems(y);
-  while (nelements_picked < m) {
+  while (size_elems(y) < m) {
     int elem = pick_elem(y);
-    nelements_picked += add_elem(elem, y);
     int subset = pick_subset(cost_function, elem, x, y);
-    nelements_picked += add_subset(subset, x, y);
+    add_subset(subset, x, y);
   }
 }
 
