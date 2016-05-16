@@ -31,7 +31,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ig=0, dls=0, iter=100; 
+int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ig=0, dls=0, gen=0, iter=100; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -72,6 +72,7 @@ void usage(){
     printf("  --bi: best improvement.\n");
     printf("  --ig: iterated greedy\n");
     printf("  --dls: dynamic local search\n");
+    printf("  --gen: genetic algorithm\n");
     printf("  --iter: number of iterations for SLS methods\n");
     printf("\n");
 }
@@ -114,6 +115,8 @@ void read_parameters(int argc, char *argv[]) {
       ig=1;
     } else if (strcmp(argv[i], "--dls") == 0) {
       dls=1;
+    } else if (strcmp(argv[i], "--gen") == 0) {
+      gen=1;
     } else if (strcmp(argv[i], "--iter") == 0) {
       iter=atoi(argv[i+1]);
       i+=1;
@@ -556,6 +559,78 @@ void dynamic_local_search(int * x, int * y, int steps) {
   free_callback(cost_function);
 }
 
+int pick_population(int * picked, int T, int * population_cost, int population_size) {
+  int * pool = mymalloc(T * sizeof(int));
+  for (int i = 0; i < T; ++i) {
+    int pick;
+    do {
+      pick = rand() % population_size;
+    } while (picked[pick]);
+    pool[i] = pick;
+  }
+  int pick = pool[0];
+  int min_cost = population_cost[pick];
+  for (int i = 1; i < T; ++i) {
+    if (population_cost[pool[i]] < min_cost) {
+      min_cost = population_cost[pool[i]];
+      pick = pool[i];
+    }
+  }
+  free(pool);
+  return pick;
+}
+
+void genetic_algorithm(int * x, int * y, int steps) {
+  int population_size = 100;
+  int T = 2;
+  // Generate initial population using random construction search
+  int ** population = mymalloc(population_size * sizeof(int*));
+  int * dummy_elements = mymalloc(m * sizeof(int));
+  for (int i = 0; i < population_size; ++i) {
+    population[i] = mymalloc(n * sizeof(int));
+    for (int j = 0; j < m; ++j) {
+      dummy_elements[j] = 0;
+    }
+    construction_search(random_pick_element, random_pick_subset, population[i], dummy_elements);
+  }
+  // Compute costs for the initial population
+  int * population_cost = mymalloc(population_size * sizeof(int));
+  for (int i = 0; i < population_size; ++i) {
+    population_cost[i] = compute_cost(population[i]);
+  }
+  int * picked = mymalloc(population_size * sizeof(int));
+  while (steps > 0) {
+    for (int i = 0; i < population_size; ++i) {
+      picked[i] = 0;
+    }
+    // Select parents
+    int first_parent = pick_population(picked, T, population_cost, population_size);
+    int second_parent = pick_population(picked, T, population_cost, population_size);
+    // recombine parents -> children
+    // evaluate children
+    // replace some parents by children
+    steps--;
+  }
+  free(picked);
+  // Find best solution of population
+  int best_population = 0;
+  int min_cost = population_cost[best_population];
+  for (int i = 1; i < population_size; ++i) {
+    if (population_cost[i] < min_cost) {
+      min_cost = population_cost[i];
+      best_population = i;
+    }
+  }
+  // Copy best solution and free memory
+  memcpy(x, population[best_population], n * sizeof(int));
+  free(population_cost);
+  for (int i = 0; i < 100; ++i) {
+    free(population[i]);
+  }
+  free(dummy_elements);
+  free(population);
+}
+
 /*** Use level>=1 to print more info (check the correct reading) */ 
 void print_instance(int level){
   int i;
@@ -666,6 +741,9 @@ int main(int argc, char *argv[]) {
   }
   else if (dls) {
     dynamic_local_search(x, y, iter);
+  }
+  else if (gen) {
+    genetic_algorithm(x, y, iter);
   }
   // compute_solution_variables();
   // print_solution(x, y);
