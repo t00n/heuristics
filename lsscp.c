@@ -610,6 +610,23 @@ void genetic_algorithm(int * x, int * y, int steps) {
     // Select parents
     int first_parent = pick_population(picked, T, population_cost, population_size);
     int second_parent = pick_population(picked, T, population_cost, population_size);
+    int first_cost = population_cost[first_parent];
+    int second_cost = population_cost[second_parent];
+    for (int i = 0; i < n; ++i) {
+      if (population[first_parent][i] == population[second_parent][i]) {
+        children[i] = population[first_parent][i];
+      }
+      else {
+        float p = (float)second_cost / ((float)first_cost + (float)second_cost);
+        float dice = (float)rand()/(float)(RAND_MAX);
+        if (dice < p) {
+          children[i] = population[first_parent][i];
+        }
+        else {
+          children[i] = population[second_parent][i];
+        }
+      }
+    }
     // recombine parents -> children
     // evaluate children
     // replace some parents by children
