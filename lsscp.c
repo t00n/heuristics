@@ -559,7 +559,7 @@ void dynamic_local_search(int * x, int * y, int steps) {
   free_callback(cost_function);
 }
 
-int pick_population(int * picked, int T, int * population_cost, int population_size) {
+int tournament_selection(int * picked, int T, int * population_cost, int population_size) {
   int * pool = mymalloc(T * sizeof(int));
   for (int i = 0; i < T; ++i) {
     int pick;
@@ -578,6 +578,21 @@ int pick_population(int * picked, int T, int * population_cost, int population_s
   }
   free(pool);
   return pick;
+}
+
+int proportional_selection(int * population_cost, int population_size, int * picked) {
+  int total_cost = 0;
+  for (int i = 0; i < population_size; ++i) {
+    total_cost += population_cost[i];
+  }
+  int dice = ((float)rand()/(float)RAND_MAX) * total_cost;
+  for (int i = 0; i < population_size; ++i) {
+    dice -= population_cost[i];
+    if (dice <= 0) {
+      return i;
+    }
+  }
+  return population_size - 1;
 }
 
 bool is_duplicate(int * elem, int ** list, int elem_size, int list_size) {
@@ -618,8 +633,16 @@ int best_individual(int ** population, int population_size, int * population_cos
   return best;
 }
 
+float density_matrix() {
+  float total = 0;
+  for (int i = 0; i < n; ++i) {
+    total += nelement[i];
+  }
+  return total / (float)(n * m);
+}
+
 void genetic_algorithm(int * x, int * y, int t) {
-  int population_size = 100;
+  int population_size = n * density_matrix();
   int T = 10;
   float mutation_rate = 1.0/(float)population_size;
   float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
@@ -634,8 +657,8 @@ void genetic_algorithm(int * x, int * y, int t) {
       picked[i] = 0;
     }
     // Select parents
-    int first_parent = pick_population(picked, T, population_cost, population_size);
-    int second_parent = pick_population(picked, T, population_cost, population_size);
+    int first_parent = tournament_selection(picked, T, population_cost, population_size);
+    int second_parent = tournament_selection(picked, T, population_cost, population_size);
     // recombine parents -> children
     int first_cost = population_cost[first_parent];
     int second_cost = population_cost[second_parent];
@@ -673,16 +696,16 @@ void genetic_algorithm(int * x, int * y, int t) {
     // evaluate children
     int children_cost = compute_cost(children);
     // replace some parents by children
-    int parent_to_replace;
-    int mean_cost = 0;
-    for (int i = 0; i < population_size; ++i) {
-      mean_cost += population_cost[i];
-    }
-    mean_cost /= population_size;
-    do {
-      parent_to_replace = rand() % population_size;
-    } while (population_cost[parent_to_replace] < mean_cost);
     if (!is_duplicate(children, population, n, population_size)) {
+      int parent_to_replace;
+      int mean_cost = 0;
+      for (int i = 0; i < population_size; ++i) {
+        mean_cost += population_cost[i];
+      }
+      mean_cost /= population_size;
+      do {
+        parent_to_replace = rand() % population_size;
+      } while (population_cost[parent_to_replace] < mean_cost);
       memcpy(population[parent_to_replace], children, n * sizeof(int));
       population_cost[parent_to_replace] = children_cost;
     }
@@ -701,7 +724,7 @@ void genetic_algorithm(int * x, int * y, int t) {
   // Copy best solution and free memory
   memcpy(x, population[best_population], n * sizeof(int));
   free(population_cost);
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < population_size; ++i) {
     free(population[i]);
   }
   free(population);
