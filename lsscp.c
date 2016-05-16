@@ -603,17 +603,25 @@ void generate_initial_population(int ** population, int population_size, int * p
       y[j] = 0;
     }
     construction_search(random_pick_element, random_pick_subset, population[i], y);
+    perturbative_search("best", population[i], y, compute_cost);
     population_cost[i] = compute_cost(population[i]);
   }
 }
 
+int best_individual(int ** population, int population_size, int * population_cost) {
+  int best = 0;
+  for (int i = 1; i < population_size; ++i) {
+    if (population_cost[i] < population_cost[best]) {
+      best = i;
+    }
+  }
+  return best;
+}
+
 void genetic_algorithm(int * x, int * y, int t) {
-  double bstart;
   int population_size = 100;
-  int T = 2;
-  bstart = (double)clock() / CLOCKS_PER_SEC;
-  printf("%f\n", ((double)clock() / CLOCKS_PER_SEC) - bstart);
-  float mutation_rate = 2.0/(float)population_size;
+  int T = 10;
+  float mutation_rate = 1.0/(float)population_size;
   float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
   int ** population = mymalloc(population_size * sizeof(int*));
   int * population_cost = mymalloc(population_size * sizeof(int));
@@ -676,7 +684,7 @@ void genetic_algorithm(int * x, int * y, int t) {
     } while (population_cost[parent_to_replace] < mean_cost);
     if (!is_duplicate(children, population, n, population_size)) {
       memcpy(population[parent_to_replace], children, n * sizeof(int));
-      population_cost[parent_to_replace] = children_cost;  
+      population_cost[parent_to_replace] = children_cost;
     }
   } while ((clock()/CLOCKS_PER_SEC) - start < stop);
   free(children);
