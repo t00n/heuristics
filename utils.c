@@ -16,3 +16,9 @@ void error_reading_file(char *text){
   printf("%s\n", text);
   exit( EXIT_FAILURE );
 }
+
+void swap_ptr(void * x, void * y) {
+  void * tmp = x;
+  x = y;
+  y = tmp;
+}

@@ -56,7 +56,6 @@ int fx;           /* sum of the cost of the subsets selected in the solution (ca
 /**       or when a complete solution is modified*/
 int *subset_cover;   /* subset_subsetver[i] selected subsets that cover element i */
 int nsubset_cover;   /* number of selected subsets that cover element i */
-__TR_function static_cost_greedy, static_cover_cost_greedy, adapted_cover_cost_greedy;
 
 void usage(){
     printf("\nUSAGE: lsscp [param_name, param_value] [options]...\n");
@@ -72,7 +71,7 @@ void usage(){
     printf("  --re: applies redundancy elimination after construction.\n");
     printf("  --bi: best improvement.\n");
     printf("  --ig: iterated greedy\n");
-    printf("  --dls: dynamic local search\n");
+    // printf("  --dls: dynamic local search\n");
     printf("  --gen: genetic algorithm\n");
     printf("  --t: time to run for SLS methods\n");
     printf("\n");
@@ -114,8 +113,8 @@ void read_parameters(int argc, char *argv[]) {
       re=1;
     } else if (strcmp(argv[i], "--ig") == 0) {
       ig=1;
-    } else if (strcmp(argv[i], "--dls") == 0) {
-      dls=1;
+    // } else if (strcmp(argv[i], "--dls") == 0) {
+    //   dls=1;
     } else if (strcmp(argv[i], "--gen") == 0) {
       gen=1;
     } else if (strcmp(argv[i], "--t") == 0) {
@@ -189,20 +188,21 @@ void read_scp(char *filename) {
   free((void *)k);
 }
 
-// pick a non covered element at random
-int random_pick_element(int * y) {
-  int elem;
-  do {
-     elem = rand() % m;
-  }
-  while (y[elem]);
-  return elem;
-}
+/** Helper functions to manipulate elements and subsets **/
 
 // add elem to the solution if non covered
 int add_elem(int elem, int * y) {
   if (!y[elem]) {
     y[elem] = true;
+    return 1;
+  }
+  return 0;
+}
+
+// remove elem from the solution if covered
+int remove_elem(int elem, int * y) {
+  if (y[elem]) {
+    y[elem] = false;
     return 1;
   }
   return 0;
@@ -230,15 +230,6 @@ bool subset_is_redundant(int subset, int * x) {
     }
   }
   return true;
-}
-
-// remove elem from the solution if covered
-int remove_elem(int elem, int * y) {
-  if (y[elem]) {
-    y[elem] = false;
-    return 1;
-  }
-  return 0;
 }
 
 // add every non covered elem of subset to the solution
@@ -269,7 +260,6 @@ int remove_subset_elems(int subset, int * x, int * y) {
 int add_subset(int subset, int * x, int * y) {
   if (!x[subset]) {
     x[subset] = true;
-    fx += cost[subset];
     return add_subset_elems(subset, y);
   }
   return 0;
@@ -279,14 +269,13 @@ int add_subset(int subset, int * x, int * y) {
 int remove_subset(int subset, int * x, int * y) {
   if (x[subset]) {
     x[subset] = false;
-    fx -= cost[subset];
     return remove_subset_elems(subset, x, y);
   }
   return 0;
 }
 
 // compute the raw cost of the solution x
-int compute_cost(int * x) {
+int total_cost_raw(int * x) {
   int total = 0;
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
@@ -316,19 +305,31 @@ int size_elems(int * y) {
   return total;
 }
 
-// generic construction search. use the function pointers pick_elem and pick_subset to respectively pick a non covered element and a subset that covers this element
-void construction_search(int (*pick_elem)(), int (*pick_subset)(int, int*), int * x, int * y) {
+/** CH1 to CH4 **/
+
+// generic construction search. use the function pointers pick_elem and pick_subset to respectively pick a non covered element and a subset that covers this element. the cost_function pointer is initialized to the function to compute the cost of a single subset
+void construction_search(int (*pick_elem)(), int (*pick_subset)(float (*)(int, int*), int, int*, int*), int * x, int * y, float (*cost_function)(int, int*)) {
   int nelements_picked = size_elems(y);
   while (nelements_picked < m) {
     int elem = pick_elem(y);
     nelements_picked += add_elem(elem, y);
-    int subset = pick_subset(elem, x);
+    int subset = pick_subset(cost_function, elem, x, y);
     nelements_picked += add_subset(subset, x, y);
   }
 }
 
-// pick a subset that covers elem at random
-int random_pick_subset(int elem, int * x) {
+// pick a non covered element at random
+int random_pick_element(int * y) {
+  int elem;
+  do {
+     elem = rand() % m;
+  }
+  while (y[elem]);
+  return elem;
+}
+
+// pick a non used subset that covers elem at random
+int random_pick_subset(float (*cost_function)(int, int*), int elem, int * x, int *y) {
   int * available_subsets = subset[elem];
   int navailable_subsets = nsubset[elem];
   int subset;
@@ -339,43 +340,33 @@ int random_pick_subset(int elem, int * x) {
 }
 
 // pick the subset that covers elem with the best cost using the cost_function pointer
-int greedy_pick_subset(cost_function, alist) 
-  float (*cost_function)(int, int*);
-  va_alist alist;
+int greedy_pick_subset(float (*cost_function)(int, int*), int elem, int * x, int * y)
 {
-  va_start_int(alist);
-  int elem = va_arg_int(alist);
-  int * x = va_arg_ptr(alist, int*);
   int * available_subsets = subset[elem];
   int navailable_subsets = nsubset[elem];
   int subset = available_subsets[0];
-  float min_cost = cost_function(subset, x);
+  float min_cost = cost_function(subset, y);
   for (int i = 1; i < navailable_subsets; ++i) {
-    float cost = cost_function(available_subsets[i], x);
+    float cost = cost_function(available_subsets[i], y);
     if (cost < min_cost) {
       min_cost = cost;
       subset = available_subsets[i];
     }
   }
-  va_return_int(alist, subset);
-  return 0;
+  return subset;
 }
 
-__TR_function greedy_pick_subset_generator(float (*cost_function)(int, int*)) {
-  return alloc_callback(&greedy_pick_subset, cost_function);
-}
-
-// static cost of subset
+// static cost of subset. passed to greedy_pick_subset
 float static_cost(int subset, int * y) {
   return cost[subset];
 }
 
-// static cost divided by static cover
+// static cost divided by static cover. passed to greedy_pick_subset
 float static_cover_cost(int subset, int * y) {
   return (float) cost[subset] / (float)nelement[subset];
 }
 
-// static cost divided by adapted cover
+// static cost divided by adapted cover. passed to greedy_pick_subset
 float adapted_cover_cost(int subset, int * y) {
   int count = 0;
   for (int i = 0; i < nelement[subset]; ++i) {
@@ -386,7 +377,9 @@ float adapted_cover_cost(int subset, int * y) {
   return (float)cost[subset] / (float)count;
 }
 
-// put redundant subsets of x in res
+/** Redundancy elimination **/
+
+// put redundant subsets of the solution x in res
 int find_redundant_subsets(int * res, int * x) {
   int count = 0;
   for (int i = 0; i < n; ++i) {
@@ -397,7 +390,7 @@ int find_redundant_subsets(int * res, int * x) {
   return count;
 }
 
-// remove redundant sets from x, beginning with highest cost (use cost_function function pointer)
+// remove redundant sets from x, beginning with highest cost
 void eliminate_redundancy(int * x, int * y) {
   int * redundant_sets = mymalloc(size_subsets(x) * sizeof(int));
   int nredundant_sets;
@@ -406,7 +399,7 @@ void eliminate_redundancy(int * x, int * y) {
     int max_cost = 0;
     int max_set = -1;
     for (int i = 0; i < nredundant_sets; ++i) {
-      int current_cost = cost[redundant_sets[i]];
+      int current_cost = static_cost(redundant_sets[i], y);
       if (current_cost > max_cost) {
         max_cost = current_cost;
         max_set = redundant_sets[i];
@@ -420,16 +413,16 @@ void eliminate_redundancy(int * x, int * y) {
 }
 
 // this functions finds a neighbour that improves the cost. It is parametrized by the type : "first" or "best" to find the first or best improvement respectively
-int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int (*cost_function)(int*)) {
-  int current_cost = cost_function(work_subsets);
+int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int (*total_cost_function)(int*)) {
+  int current_cost = total_cost_function(work_subsets);
   // remove each subset from the solution one at a time and construct a new solution. This gives a neighbour
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
       memcpy(work_subsets, x, n * sizeof(int));
       memcpy(work_elems, y, m * sizeof(int));
       remove_subset(i, work_subsets, work_elems);
-      construction_search(random_pick_element, static_cover_cost_greedy, work_subsets, work_elems);
-      int cost = cost_function(work_subsets);
+      construction_search(random_pick_element, greedy_pick_subset, work_subsets, work_elems, static_cost);
+      int cost = total_cost_function(work_subsets);
       if (cost < current_cost) {
         memcpy(x, work_subsets, n * sizeof(int));
         memcpy(y, work_elems, m * sizeof(int));
@@ -462,45 +455,47 @@ void perturbative_search(char * type, int * x, int * y, int (*cost_function)(int
 }
 
 // remove one element at random and then complete the solution at random
-void reconstruct2(int * x, int * y) {
-  int subset_to_remove;
-  do {
-    subset_to_remove = rand() % n;
-  } while (!x[subset_to_remove]);
-  remove_subset(subset_to_remove, x, y);
-  construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
-}
+// void reconstruct2(int * x, int * y) {
+//   int subset_to_remove;
+//   do {
+//     subset_to_remove = rand() % n;
+//   } while (!x[subset_to_remove]);
+//   remove_subset(subset_to_remove, x, y);
+//   construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
+// }
 
-// apply n random move then remove redundant sets
-void reconstruct(int * x, int * y, int n) {
-  for (int i = 0; i < n; ++i) {
-    reconstruct2(x, y);
-  }
-  eliminate_redundancy(x, y);
-}
+// // apply n random move then remove redundant sets
+// void reconstruct(int * x, int * y, int n) {
+//   for (int i = 0; i < n; ++i) {
+//     reconstruct2(x, y);
+//   }
+//   eliminate_redundancy(x, y);
+// }
 
-void iterated_greedy(int * x, int * y, int t) {
+void iterated_greedy(int * x, int * y, int t, float alpha) {
   // generate inital solution
-  construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
+  construction_search(random_pick_element, greedy_pick_subset, x, y, adapted_cover_cost);
   // perform a local search
-  perturbative_search("best", x, y, compute_cost);
+  perturbative_search("best", x, y, total_cost_raw);
   // work variables
   int * work_subsets = mymalloc(n * sizeof(int));
   int * work_elems = mymalloc(m * sizeof(int));
-  int min_cost = compute_cost(x);
+  int min_cost = total_cost_raw(x);
   float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
   do {
-    memcpy(work_subsets, x, n * sizeof(int));
-    memcpy(work_elems, y, m * sizeof(int));
-    // random 2-move
-    reconstruct(work_subsets, work_elems, 1);
-    // local search
-    perturbative_search("best", work_subsets, work_elems, compute_cost);
-    int cost = compute_cost(work_subsets);
+    for (int i = 0; i < n; ++i) {
+      work_subsets[i] = 0;
+    }
+    for (int i = 0; i < m; ++i) {
+      work_elems[i] = 0;
+    }
+    construction_search(random_pick_element, greedy_pick_subset, work_subsets, work_elems, adapted_cover_cost);
+    perturbative_search("best", work_subsets, work_elems, total_cost_raw);
+    int cost = total_cost_raw(work_subsets);
     // save new solution if better
     if (cost < min_cost) {
-      memcpy(x, work_subsets, n * sizeof(int));
-      memcpy(y, work_elems, m * sizeof(int));
+      swap_ptr(x, work_subsets);
+      swap_ptr(y, work_elems);
       min_cost = cost;
     }
   } while ((clock()/CLOCKS_PER_SEC) - start < stop);
@@ -508,58 +503,56 @@ void iterated_greedy(int * x, int * y, int t) {
   free(work_subsets);
 }
 
-int dynamic_cost(penalties, alist) 
-  int * penalties;
-  va_alist alist;
-{
-  va_start_int(alist);
-  int * x = va_arg_ptr(alist, int *);
-  int res = 0;
-  for (int i = 0; i < n; ++i) {
-    if (x[i]) {
-      res += penalties[i] * cost[i];
-    }
-  }
-  va_return_int(alist, res);
-  return 0;
-}
+// int dynamic_cost(penalties, alist) 
+//   int * penalties;
+//   va_alist alist;
+// {
+//   va_start_int(alist);
+//   int * x = va_arg_ptr(alist, int *);
+//   int res = 0;
+//   for (int i = 0; i < n; ++i) {
+//     if (x[i]) {
+//       res += penalties[i] * cost[i];
+//     }
+//   }
+//   va_return_int(alist, res);
+//   return 0;
+// }
 
-// [Voudouris and Tsang, 1995] 
-void update_penalties(int * x, int * penalties) {
-  int total_cost = compute_cost(x);
-  float utility(int i) {
-    return ((float)total_cost/(float)cost[i]) / (1 + (float)penalties[i]);
-  }
-  float max_utility = 0;
-  for (int i = 0; i < n; ++i) {
-    if (x[i]) {
-      float util = utility(i);
-      if (util > max_utility) {
-        max_utility = util;
-      }
-    }
-  }
-  for (int i = 0; i < n; ++i) {
-    if (x[i] && utility(i) >= max_utility) {
-      penalties[i] += 1;
-    }
-  }
-}
+// // [Voudouris and Tsang, 1995] 
+// void update_penalties(int * x, int * penalties) {
+//   int total_cost = total_cost_raw(x);
+//   float utility(int i) {
+//     return ((float)total_cost/(float)cost[i]) / (1 + (float)penalties[i]);
+//   }
+//   float max_utility = 0;
+//   for (int i = 0; i < n; ++i) {
+//     if (x[i]) {
+//       float util = utility(i);
+//       if (util > max_utility) {
+//         max_utility = util;
+//       }
+//     }
+//   }
+//   for (int i = 0; i < n; ++i) {
+//     if (x[i] && utility(i) >= max_utility) {
+//       penalties[i] += 1;
+//     }
+//   }
+// }
 
-void dynamic_local_search(int * x, int * y, int steps) {
-  construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
-  int * penalties = mymalloc(n * sizeof(int));
-  __TR_function cost_function = alloc_callback(&dynamic_cost, penalties);
-  for (int i = 0; i < n; ++i) {
-    penalties[i] = 0;
-  }
-  do {
-    perturbative_search("best", x, y, cost_function);
-    update_penalties(x, penalties);
-    steps--;
-  } while (steps > 0);
-  free_callback(cost_function);
-}
+// void dynamic_local_search(int * x, int * y, int steps) {
+//   construction_search(random_pick_element, greedy_pick_subset, x, y, adapted_cover_cost);
+//   int * penalties = mymalloc(n * sizeof(int));
+//   for (int i = 0; i < n; ++i) {
+//     penalties[i] = 0;
+//   }
+//   do {
+//     perturbative_search("best", x, y, total_cost_raw);
+//     update_penalties(x, penalties);
+//     steps--;
+//   } while (steps > 0);
+// }
 
 int tournament_selection(int * picked, int T, int * population_cost, int population_size) {
   int * pool = mymalloc(T * sizeof(int));
@@ -619,9 +612,9 @@ void generate_initial_population(int ** population, int population_size, int * p
     for (int j = 0; j < m; ++j) {
       y[j] = 0;
     }
-    construction_search(random_pick_element, random_pick_subset, population[i], y);
-    perturbative_search("best", population[i], y, compute_cost);
-    population_cost[i] = compute_cost(population[i]);
+    construction_search(random_pick_element, random_pick_subset, population[i], y, static_cost);
+    perturbative_search("best", population[i], y, total_cost_raw);
+    population_cost[i] = total_cost_raw(population[i]);
   }
 }
 
@@ -694,7 +687,7 @@ void genetic_algorithm(int * x, int * y, int t) {
         add_subset_elems(i, y);
       }
     }
-    construction_search(random_pick_element, adapted_cover_cost_greedy, children, y);
+    construction_search(random_pick_element, greedy_pick_subset, children, y, adapted_cover_cost);
     eliminate_redundancy(children, y);
     // replace some parents by children
     if (!is_duplicate(children, population, n, population_size)) {
@@ -710,7 +703,7 @@ void genetic_algorithm(int * x, int * y, int t) {
       int * tmp = population[parent_to_replace];
       population[parent_to_replace] = children;
       children = tmp;
-      population_cost[parent_to_replace] = compute_cost(population[parent_to_replace]);
+      population_cost[parent_to_replace] = total_cost_raw(population[parent_to_replace]);
     }
   } while ((clock()/CLOCKS_PER_SEC) - start < stop);
   free(children);
@@ -762,7 +755,7 @@ void print_instance(int level){
 
 void print_solution(int * x, int * y) {
   // printf("Solution is admissible : %s\n", is_admissible_solution() ? "true" : "false");
-  printf("Solution cost : %d\n", compute_cost(x));
+  printf("Solution cost : %d\n", total_cost_raw(x));
   printf("Solution : %d subsets\n", size_subsets(x));
   for (int i = 0; i < n; ++i) {
     if (x[i]) {
@@ -777,7 +770,7 @@ void print_solution(int * x, int * y) {
 }
 
 void print_cost(int * x) {
-  printf("%d\n", compute_cost(x));
+  printf("%d\n", total_cost_raw(x));
 }
 
 /*** Use this function to initialize other variables of the algorithms **/
@@ -790,10 +783,6 @@ void initialize(){
   for (int i = 0; i < m; ++i) {
     y[i] = false;
   }
-  fx = 0;
-  static_cost_greedy = greedy_pick_subset_generator(static_cost);
-  static_cover_cost_greedy = greedy_pick_subset_generator(static_cover_cost);
-  adapted_cover_cost_greedy = greedy_pick_subset_generator(adapted_cover_cost);
 }
 // 
 /*** Use this function to finalize execution */
@@ -805,9 +794,6 @@ void finalize(){
   free(cost);
   free(y);
   free(x);
-  free_callback(adapted_cover_cost_greedy);
-  free_callback(static_cover_cost_greedy);
-  free_callback(static_cost_greedy);
 }
 
 int main(int argc, char *argv[]) {
@@ -818,32 +804,32 @@ int main(int argc, char *argv[]) {
   initialize();
   // The four construction searches. The only difference is the cost computation technique
   if (ch1) {
-    construction_search(random_pick_element, random_pick_subset, x, y);
+    construction_search(random_pick_element, random_pick_subset, x, y, static_cost);
   }
   else if (ch2) {
-    construction_search(random_pick_element, static_cost_greedy, x, y);
+    construction_search(random_pick_element, greedy_pick_subset, x, y, static_cost);
   }
   else if (ch3) {
-    construction_search(random_pick_element, static_cover_cost_greedy, x, y);
+    construction_search(random_pick_element, greedy_pick_subset, x, y, static_cover_cost);
   }
   else if (ch4) {
-    construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
+    construction_search(random_pick_element, greedy_pick_subset, x, y, adapted_cover_cost);
   }
   if (re) {
     eliminate_redundancy(x, y);
   }
   if (fi) {
-    perturbative_search("first", x, y, compute_cost);
+    perturbative_search("first", x, y, total_cost_raw);
   }
   else if (bi) {
-    perturbative_search("best", x, y, compute_cost);
+    perturbative_search("best", x, y, total_cost_raw);
   }
   else if (ig) {
-    iterated_greedy(x, y, t);
+    iterated_greedy(x, y, t, 0.5);
   }
-  else if (dls) {
-    dynamic_local_search(x, y, t);
-  }
+  // else if (dls) {
+  //   dynamic_local_search(x, y, t);
+  // }
   else if (gen) {
     genetic_algorithm(x, y, t);
   }
