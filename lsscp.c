@@ -559,25 +559,23 @@ void dynamic_local_search(int * x, int * y, int steps) {
   free_callback(cost_function);
 }
 
-int pick_population(int * picked, int T, int * population_cost, int population_size) {
-  int * pool = mymalloc(T * sizeof(int));
-  for (int i = 0; i < T; ++i) {
+int pick_population(int * picked, int T, int * population_cost, int population_size) {;
+  int best_pick;
+  do {
+    best_pick = rand() % population_size;
+  } while (picked[best_pick]);
+  picked[best_pick] = true;
+  for (int i = 1; i < T; ++i) {
     int pick;
     do {
       pick = rand() % population_size;
     } while (picked[pick]);
-    pool[i] = pick;
-  }
-  int pick = pool[0];
-  int min_cost = population_cost[pick];
-  for (int i = 1; i < T; ++i) {
-    if (population_cost[pool[i]] < min_cost) {
-      min_cost = population_cost[pool[i]];
-      pick = pool[i];
+    picked[pick] = true;
+    if (population_cost[pick] < population_cost[best_pick]) {
+      best_pick = pick;
     }
   }
-  free(pool);
-  return pick;
+  return best_pick;
 }
 
 bool is_duplicate(int * elem, int ** list, int elem_size, int list_size) {
@@ -607,13 +605,25 @@ void generate_initial_population(int ** population, int population_size, int * p
   }
 }
 
-void genetic_algorithm(int * x, int * y, int t) {
-  double bstart;
+float compute_average_pop_cost(int ** population, int population_size) {
+  float res = 0;
+  for (int i = 0; i < population_size; ++i) {
+    res += compute_cost(population[i]);
+  }
+  return res/(float)population_size;
+}
+
+typedef struct optimization_data {
+  int cost_stabilization_time;
+  float  cost_stabilization_cost;
+  float first_cost;
+} optimization_data;
+
+optimization_data genetic_algorithm(int * x, int * y, int t, bool mutate, float mc, float mg) {
   int population_size = 100;
   int T = 2;
-  bstart = (double)clock() / CLOCKS_PER_SEC;
-  printf("%f\n", ((double)clock() / CLOCKS_PER_SEC) - bstart);
-  float mutation_rate = 2.0/(float)population_size;
+  float mutation_rate;
+  float mf = 10;
   float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
   int ** population = mymalloc(population_size * sizeof(int*));
   int * population_cost = mymalloc(population_size * sizeof(int));
@@ -621,7 +631,14 @@ void genetic_algorithm(int * x, int * y, int t) {
   // used in parents selection
   int * picked = mymalloc(population_size * sizeof(int));
   int * children = mymalloc(n * sizeof(int));
+  int nb_children = 0;
+  float previous_cost = compute_average_pop_cost(population, population_size);
+  optimization_data opt_data;
+  opt_data.first_cost = previous_cost;
   do {
+    if (mutate) {
+      mutation_rate = mf / (1 + exp((-4) * mg * (nb_children - mc) / mf));
+    }
     for (int i = 0; i < population_size; ++i) {
       picked[i] = 0;
     }
@@ -646,10 +663,12 @@ void genetic_algorithm(int * x, int * y, int t) {
         }
       }
     }
-    for (int i = 0; i < n; ++i) {
-      float dice = (float)rand()/(float)(RAND_MAX);
-      if (dice < mutation_rate) {
-        children[i] = !children[i];
+    if (mutate) {
+      for (int i = 0; i < n; ++i) {
+        float dice = (float)rand()/(float)(RAND_MAX);
+        if (dice < mutation_rate) {
+          children[i] = !children[i];
+        }
       }
     }
     for (int i = 0; i < m; ++i) {
@@ -665,18 +684,25 @@ void genetic_algorithm(int * x, int * y, int t) {
     // evaluate children
     int children_cost = compute_cost(children);
     // replace some parents by children
-    int parent_to_replace;
-    int mean_cost = 0;
-    for (int i = 0; i < population_size; ++i) {
-      mean_cost += population_cost[i];
-    }
-    mean_cost /= population_size;
-    do {
-      parent_to_replace = rand() % population_size;
-    } while (population_cost[parent_to_replace] < mean_cost);
     if (!is_duplicate(children, population, n, population_size)) {
+      int parent_to_replace;
+      int mean_cost = 0;
+      for (int i = 0; i < population_size; ++i) {
+        mean_cost += population_cost[i];
+      }
+      mean_cost /= population_size;
+      do {
+        parent_to_replace = rand() % population_size;
+      } while (population_cost[parent_to_replace] < mean_cost);
       memcpy(population[parent_to_replace], children, n * sizeof(int));
-      population_cost[parent_to_replace] = children_cost;  
+      population_cost[parent_to_replace] = children_cost; 
+      nb_children++;
+      float actual_cost = compute_average_pop_cost(population, population_size); 
+      float derivative = (actual_cost - previous_cost) / actual_cost;
+      if (derivative < 0.05) {
+        opt_data.cost_stabilization_time = nb_children;
+        opt_data.cost_stabilization_cost = actual_cost;
+      }
     }
   } while ((clock()/CLOCKS_PER_SEC) - start < stop);
   free(children);
@@ -697,6 +723,7 @@ void genetic_algorithm(int * x, int * y, int t) {
     free(population[i]);
   }
   free(population);
+  return opt_data;
 }
 
 /*** Use level>=1 to print more info (check the correct reading) */ 
@@ -811,7 +838,9 @@ int main(int argc, char *argv[]) {
     dynamic_local_search(x, y, t);
   }
   else if (gen) {
-    genetic_algorithm(x, y, t);
+    optimization_data opt_data = genetic_algorithm(x, y, t, false, 0, 0);
+    printf("%f %d %f\n", opt_data.first_cost, opt_data.cost_stabilization_time, opt_data.cost_stabilization_cost);
+    genetic_algorithm(x, y, t, true, opt_data.cost_stabilization_time/2, abs(opt_data.cost_stabilization_cost - opt_data.first_cost) / opt_data.cost_stabilization_time);
   }
   // compute_solution_variables();
   // print_solution(x, y);
