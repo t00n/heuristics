@@ -580,6 +580,21 @@ int pick_population(int * picked, int T, int * population_cost, int population_s
   return pick;
 }
 
+bool is_duplicate(int * elem, int ** list, int elem_size, int list_size) {
+  for (int i = 0; i < list_size; ++i) {
+    bool all = true;
+    for (int j = 0; j < elem_size; ++j) {
+      if (elem[j] != list[i][j]) {
+        all = false;
+      }
+    }
+    if (all) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void genetic_algorithm(int * x, int * y, int steps) {
   int population_size = 100;
   int T = 2;
@@ -649,10 +664,11 @@ void genetic_algorithm(int * x, int * y, int steps) {
     int children_cost = compute_cost(children);
     // replace some parents by children
     int parent_to_replace = rand() % population_size;
-    memcpy(population[parent_to_replace], children, n * sizeof(int));
-    population_cost[parent_to_replace] = children_cost;
-    
-    steps--;
+    if (!is_duplicate(children, population, n, population_size)) {
+      memcpy(population[parent_to_replace], children, n * sizeof(int));
+      population_cost[parent_to_replace] = children_cost;  
+      steps--;
+    }
   }
   free(children);
   free(picked);
