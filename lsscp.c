@@ -595,27 +595,30 @@ bool is_duplicate(int * elem, int ** list, int elem_size, int list_size) {
   return false;
 }
 
-void genetic_algorithm(int * x, int * y, int t) {
-  int population_size = 100;
-  int T = 2;
-  float mutation_rate = 2.0/(float)population_size;
-  float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
+void generate_initial_population(int ** population, int population_size, int * population_cost, int * y) {
   // Generate initial population using random construction search
-  int ** population = mymalloc(population_size * sizeof(int*));
-  int * dummy_elements = mymalloc(m * sizeof(int));
   for (int i = 0; i < population_size; ++i) {
     population[i] = mymalloc(n * sizeof(int));
     for (int j = 0; j < m; ++j) {
-      dummy_elements[j] = 0;
+      y[j] = 0;
     }
-    construction_search(random_pick_element, random_pick_subset, population[i], dummy_elements);
-    perturbative_search("first", population[i], dummy_elements, compute_cost);
-  }
-  // Compute costs for the initial population
-  int * population_cost = mymalloc(population_size * sizeof(int));
-  for (int i = 0; i < population_size; ++i) {
+    construction_search(random_pick_element, random_pick_subset, population[i], y);
     population_cost[i] = compute_cost(population[i]);
   }
+}
+
+void genetic_algorithm(int * x, int * y, int t) {
+  double bstart;
+  int population_size = 100;
+  int T = 2;
+  bstart = (double)clock() / CLOCKS_PER_SEC;
+  printf("%f\n", ((double)clock() / CLOCKS_PER_SEC) - bstart);
+  float mutation_rate = 2.0/(float)population_size;
+  float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
+  int ** population = mymalloc(population_size * sizeof(int*));
+  int * population_cost = mymalloc(population_size * sizeof(int));
+  generate_initial_population(population, population_size, population_cost, y);
+  // used in parents selection
   int * picked = mymalloc(population_size * sizeof(int));
   int * children = mymalloc(n * sizeof(int));
   do {
@@ -650,15 +653,15 @@ void genetic_algorithm(int * x, int * y, int t) {
       }
     }
     for (int i = 0; i < m; ++i) {
-      dummy_elements[i] = 0;
+      y[i] = 0;
     }
     for (int i = 0; i < n; ++i) {
       if (children[i]) {
-        add_subset_elems(i, dummy_elements);
+        add_subset_elems(i, y);
       }
     }
-    construction_search(random_pick_element, adapted_cover_cost_greedy, children, dummy_elements);
-    eliminate_redundancy(children, dummy_elements);
+    construction_search(random_pick_element, adapted_cover_cost_greedy, children, y);
+    eliminate_redundancy(children, y);
     // evaluate children
     int children_cost = compute_cost(children);
     // replace some parents by children
@@ -693,7 +696,6 @@ void genetic_algorithm(int * x, int * y, int t) {
   for (int i = 0; i < 100; ++i) {
     free(population[i]);
   }
-  free(dummy_elements);
   free(population);
 }
 
