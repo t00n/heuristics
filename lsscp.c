@@ -583,6 +583,7 @@ int pick_population(int * picked, int T, int * population_cost, int population_s
 void genetic_algorithm(int * x, int * y, int steps) {
   int population_size = 100;
   int T = 2;
+  float mutation_rate = 1.0/(float)population_size;
   // Generate initial population using random construction search
   int ** population = mymalloc(population_size * sizeof(int*));
   int * dummy_elements = mymalloc(m * sizeof(int));
@@ -610,6 +611,7 @@ void genetic_algorithm(int * x, int * y, int steps) {
     // Select parents
     int first_parent = pick_population(picked, T, population_cost, population_size);
     int second_parent = pick_population(picked, T, population_cost, population_size);
+    // recombine parents -> children
     int first_cost = population_cost[first_parent];
     int second_cost = population_cost[second_parent];
     for (int i = 0; i < n; ++i) {
@@ -627,9 +629,29 @@ void genetic_algorithm(int * x, int * y, int steps) {
         }
       }
     }
-    // recombine parents -> children
+    for (int i = 0; i < n; ++i) {
+      float dice = (float)rand()/(float)(RAND_MAX);
+      if (dice < mutation_rate) {
+        children[i] = !children[i];
+      }
+    }
+    for (int i = 0; i < m; ++i) {
+      dummy_elements[i] = 0;
+    }
+    for (int i = 0; i < n; ++i) {
+      if (children[i]) {
+        add_subset_elems(i, dummy_elements);
+      }
+    }
+    construction_search(random_pick_element, adapted_cover_cost_greedy, children, dummy_elements);
+    eliminate_redundancy(children, dummy_elements);
     // evaluate children
+    int children_cost = compute_cost(children);
     // replace some parents by children
+    int parent_to_replace = rand() % population_size;
+    memcpy(population[parent_to_replace], children, n * sizeof(int));
+    population_cost[parent_to_replace] = children_cost;
+    
     steps--;
   }
   free(children);
