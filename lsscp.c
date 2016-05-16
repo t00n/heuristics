@@ -592,6 +592,9 @@ void genetic_algorithm(int * x, int * y, int steps) {
       dummy_elements[j] = 0;
     }
     construction_search(random_pick_element, random_pick_subset, population[i], dummy_elements);
+    perturbative_search("first", population[i], dummy_elements, compute_cost);
+    // print_solution(population[i], dummy_elements);
+    // printf("meme pas ici\n");
   }
   // Compute costs for the initial population
   int * population_cost = mymalloc(population_size * sizeof(int));
@@ -599,6 +602,7 @@ void genetic_algorithm(int * x, int * y, int steps) {
     population_cost[i] = compute_cost(population[i]);
   }
   int * picked = mymalloc(population_size * sizeof(int));
+  int * children = mymalloc(n * sizeof(int));
   while (steps > 0) {
     for (int i = 0; i < population_size; ++i) {
       picked[i] = 0;
@@ -611,6 +615,7 @@ void genetic_algorithm(int * x, int * y, int steps) {
     // replace some parents by children
     steps--;
   }
+  free(children);
   free(picked);
   // Find best solution of population
   int best_population = 0;
