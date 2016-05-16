@@ -1,0 +1,33 @@
+
+# Compilation
+
+```
+    make
+```
+
+# Usage
+
+```
+    ./lsscp
+```
+
+Shows parameters and options of the program
+
+
+# Jupyter/Ipython
+
+The IPython Notebook used to analyze the data is at the root of the archive ("heuristics.ipynb").
+
+* Install Jupyter/IPython, Python 3, python-matplotlib, numpy and scipy
+
+* Run Jupyter with
+
+```
+    jupyter notebook
+```
+
+* Go to "http://localhost:8888" and open the file
+
+* In the menu "Cell" there is a button "Run All" that will launch every cell. It may take a while to finish.
+
+* The instances files must be in a directory "instances" below the notebook. The results are stored in a directory "results" below the notebook.
