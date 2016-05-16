@@ -1,0 +1,92 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{url}
+
+\author{Antoine CARPENTIER}
+\title{Heuristic optimization\\ \small Implementation exercises 1}
+
+\bibliographystyle{apalike}
+
+\begin{document}
+\maketitle
+
+\section{Exercise 1}
+
+\subsection{Documentation}
+
+The code is built modularly. The \texttt{construction\_search} function accepts pointers to function that modifies its behavior : 
+
+\begin{itemize}
+    \item A function \texttt{pick\_elem} that picks a non covered element
+    \item A function \texttt{pick\_subset} that picks a non used subset containing the previous element. Because only non used subsets are picked, no redundant subset is added during the construction
+    \item A function \texttt{cost\_function} that computes the cost of a subset
+\end{itemize}
+
+To build the algorithms CH1 to CH4, the \texttt{construction\_search} function is parametrized as such : 
+
+\begin{itemize}
+    \item CH1 : with \texttt{random\_pick\_element}, \texttt{random\_pick\_subset} and \texttt{static\_cost} (unused)
+    \item CH2 : with \texttt{random\_pick\_element}, \texttt{greedy\_pick\_subset} and \texttt{static\_cost}
+    \item CH3 : with \texttt{random\_pick\_element}, \texttt{greedy\_pick\_subset} and \texttt{static\_cover\_cost}
+    \item CH4 : with \texttt{random\_pick\_element}, \texttt{greedy\_pick\_subset} and \texttt{adaptive\_cover\_cost}
+\end{itemize}
+
+The function \texttt{random\_pick\_element} picks randomly a non covered element and is used everywhere.
+
+The function \texttt{random\_pick\_subset} picks randomly an unused subset that contains the element.
+
+The function \texttt{greedy\_pick\_subset} picks a unused subset with minimal that contains the element using the \texttt{cost\_function}.
+
+The function \texttt{static\_cost} returns the raw cost of the subset.
+
+The function \texttt{static\_cover\_cost} returns the raw cost of the subset divided by the number of elements in the subset.
+
+The function \texttt{adaptive\_cover\_cost} returns the raw cost of the subset divided by the number of elements that it would add to the solution.
+
+The function \texttt{eliminate\_redundancy} uses the function \texttt{find\_redundant\_subsets} to get every redundant subset and remove the set with highest cost (using \texttt{static\_cost})
+
+\subsection{Results}
+
+IPython and SciPy were used to process the results from the algorithms. You can find the \textit{ipynb} file in the archive.
+
+\subsubsection{Execution times}
+
+\begin{itemize}
+    \item CH1 : 1.3123996257781982 seconds
+    \item CH2 : 1.0234956741333008 seconds
+    \item CH3 : 1.0669968128204346 seconds
+    \item CH4 : 1.0484178066253662 seconds
+    \item CH1 + RE : 3.1139917373657227 seconds
+    \item CH2 + RE : 1.7006745338439941 seconds
+    \item CH3 + RE : 1.4156222343444824 seconds
+    \item CH4 + RE : 1.1701548099517822 seconds
+\end{itemize}
+
+\subsubsection{Average percentage deviation from best known solutions}
+
+\begin{itemize}
+    \item CH1 : 35.29621653608673 \%
+    \item CH2 : 0.27405351611183165 \%
+    \item CH3 : 0.3016417317840776 \%
+    \item CH4 : 0.1767634379498829 \%
+    \item CH1 + RE : 27.81905654265422 \%
+    \item CH2 + RE : 0.11592208166847057 \%
+    \item CH3 + RE : 0.14073851429349368 \%
+    \item CH4 + RE : 0.13197283301819474 \%
+\end{itemize}
+
+\subsubsection{Improvement of redundancy elimination}
+
+0.9798387096774194 \% of instances are improved by the redundancy elimination.
+
+We use a Wilcoxon signed-rank test because we can not assume that the population is normally distributed. We use the \texttt{scipy.stats.wilcoxon} function from \cite{scipywilcoxon} with a confidence interval of 95\% and the null hypothesis that the benchmarks of the algorithms with and without redundancy elimination have the same mean.
+The result is a pvalue of 1.2814523415056763e-41 which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the benchmarks.
+
+\section{Exercise 2}
+
+\bibliography{main}
+\end{document}
