@@ -188,7 +188,7 @@ void read_scp(char *filename) {
   free((void *)k);
 }
 
-/** Helper functions to manipulate elements and subsets **/
+/************* Helper functions to manipulate elements and subsets *************/
 
 // add elem to the solution if non covered
 int add_elem(int elem, int * y) {
@@ -305,7 +305,7 @@ int size_elems(int * y) {
   return total;
 }
 
-/** CH1 to CH4 **/
+/************* Construction search (CH1 -> CH4) *************/
 
 // generic construction search. use the function pointers pick_elem and pick_subset to respectively pick a non covered element and a subset that covers this element. the cost_function pointer is initialized to the function to compute the cost of a single subset
 void construction_search(int (*pick_elem)(), int (*pick_subset)(float (*)(int, int*), int, int*, int*), int * x, int * y, float (*cost_function)(int, int*)) {
@@ -377,7 +377,7 @@ float adapted_cover_cost(int subset, int * y) {
   return (float)cost[subset] / (float)count;
 }
 
-/** Redundancy elimination **/
+/************* Redundancy elimination (RE) *************/
 
 // put redundant subsets of the solution x in res
 int find_redundant_subsets(int * res, int * x) {
@@ -411,6 +411,8 @@ void eliminate_redundancy(int * x, int * y) {
   } while (nredundant_sets > 0);
   free(redundant_sets);
 }
+
+/************* Perturbative search (FI, BI) *************/
 
 // this functions finds a neighbour that improves the cost. It is parametrized by the type : "first" or "best" to find the first or best improvement respectively
 int find_improvement(char * type, int * work_subsets, int * work_elems, int * x, int * y, int (*total_cost_function)(int*)) {
@@ -471,6 +473,8 @@ void perturbative_search(char * type, int * x, int * y, int (*cost_function)(int
 //   }
 //   eliminate_redundancy(x, y);
 // }
+
+/************* Hybrid method *************/
 
 void iterated_greedy(int * x, int * y, int t, float alpha) {
   // generate inital solution
@@ -554,6 +558,8 @@ void iterated_greedy(int * x, int * y, int t, float alpha) {
 //   } while (steps > 0);
 // }
 
+/************* Population-based method *************/
+
 int tournament_selection(int * picked, int T, int * population_cost, int population_size) {
   int * pool = mymalloc(T * sizeof(int));
   for (int i = 0; i < T; ++i) {
@@ -575,20 +581,20 @@ int tournament_selection(int * picked, int T, int * population_cost, int populat
   return pick;
 }
 
-int proportional_selection(int * population_cost, int population_size, int * picked) {
-  int total_cost = 0;
-  for (int i = 0; i < population_size; ++i) {
-    total_cost += population_cost[i];
-  }
-  int dice = ((float)rand()/(float)RAND_MAX) * total_cost;
-  for (int i = 0; i < population_size; ++i) {
-    dice -= population_cost[i];
-    if (dice <= 0) {
-      return i;
-    }
-  }
-  return population_size - 1;
-}
+// int proportional_selection(int * population_cost, int population_size, int * picked) {
+//   int total_cost = 0;
+//   for (int i = 0; i < population_size; ++i) {
+//     total_cost += population_cost[i];
+//   }
+//   int dice = ((float)rand()/(float)RAND_MAX) * total_cost;
+//   for (int i = 0; i < population_size; ++i) {
+//     dice -= population_cost[i];
+//     if (dice <= 0) {
+//       return i;
+//     }
+//   }
+//   return population_size - 1;
+// }
 
 bool is_duplicate(int * elem, int ** list, int elem_size, int list_size) {
   for (int i = 0; i < list_size; ++i) {
@@ -618,15 +624,15 @@ void generate_initial_population(int ** population, int population_size, int * p
   }
 }
 
-int best_individual(int ** population, int population_size, int * population_cost) {
-  int best = 0;
-  for (int i = 1; i < population_size; ++i) {
-    if (population_cost[i] < population_cost[best]) {
-      best = i;
-    }
-  }
-  return best;
-}
+// int best_individual(int ** population, int population_size, int * population_cost) {
+//   int best = 0;
+//   for (int i = 1; i < population_size; ++i) {
+//     if (population_cost[i] < population_cost[best]) {
+//       best = i;
+//     }
+//   }
+//   return best;
+// }
 
 float density_matrix() {
   float total = 0;
