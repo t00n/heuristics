@@ -18,12 +18,12 @@
 
 \subsection{Implementation}
 
-The code is built modularly. The \texttt{construction\_search} function accepts pointers to function that modifies its behavior : 
+The code is built modularly. The \texttt{construction\_search} function accepts pointers to functions that modifies its behavior. This allows to use several methods of construction search without code duplication.
 
 \begin{itemize}
-    \item A function \texttt{pick\_elem} that picks a non covered element
-    \item A function \texttt{pick\_subset} that picks a non used subset containing the previous element. Because only non used subsets are picked, no redundant subset is added during the construction
-    \item A function \texttt{cost\_function} that computes the cost of a subset
+    \item The function \texttt{pick\_elem} picks a non-covered element
+    \item The function \texttt{pick\_subset} picks a non-already-picked subset containing the element. This way no redundant subset is added during the solution construction
+    \item The function \texttt{cost\_function} that computes the cost of a subset and is used in the \texttt{pick\_subset} function
 \end{itemize}
 
 To build the algorithms CH1 to CH4, the \texttt{construction\_search} function is parametrized as such : 
@@ -47,11 +47,14 @@ The function \texttt{static\_cover\_cost} returns the raw cost of the subset div
 
 The function \texttt{adaptive\_cover\_cost} returns the raw cost of the subset divided by the number of elements that it would add to the solution.
 
-The function \texttt{eliminate\_redundancy} uses the function \texttt{find\_redundant\_subsets} to get every redundant subset and remove the set with highest cost (using \texttt{static\_cost})
+The redundancy elimination feature is provided by the function \texttt{eliminate\_redundancy} that uses the function \texttt{find\_redundant\_subsets} to compute every redundant subset and the remove the subset with highest cost using \texttt{static\_cost}.
+A subset is detected as redundant by iterating on other subsets to find his every element.
 
 \subsection{Results}
 
-IPython and SciPy were used to process the results from the algorithms. You can find the \textit{ipynb} file in the archive.
+IPython and SciPy were used to process the results from the algorithms. You can find the \textit{ipynb} file in the archive. The instructions to use it are in the README file at the root of the archive.
+
+These algorithms are very fast but not efficient. They stay easily stuck in local optima and implement no method to escape them. The worse algorithm in terms of both computation time and average percentage deviation is the CH1. The greedy algorithms implement a technique (even if it is basic) to find the best solutions but the CH1 only finds random solutions.
 
 \subsubsection{Total computation times}
 
@@ -66,37 +69,36 @@ IPython and SciPy were used to process the results from the algorithms. You can 
     \item CH4 + RE : 1.1701548099517822 seconds
 \end{itemize}
 
+We can see that CH1 is the slowest algorithm, both with and without redundancy elimination. The three others seem to be equal without redundancy elimination but the sophistication of the technique helps reducing the redundancy. The CH2 + RE is far slower than the CH2 than CH3 + RE is to the CH3. The fact that the evaluation function in CH3 and CH4 depends on the number of element of the subset prevents some redundant sets to be added to the solution.
+
 \subsubsection{Average percentage deviation from best known solutions}
 
 \begin{itemize}
-    \item CH1 : 35.29621653608673 \%
-    \item CH2 : 0.27405351611183165 \%
-    \item CH3 : 0.3016417317840776 \%
-    \item CH4 : 0.1767634379498829 \%
-    \item CH1 + RE : 27.81905654265422 \%
-    \item CH2 + RE : 0.11592208166847057 \%
-    \item CH3 + RE : 0.14073851429349368 \%
-    \item CH4 + RE : 0.13197283301819474 \%
+    \item CH1 : 35.29621653608673\%
+    \item CH2 : 0.27405351611183165\%
+    \item CH3 : 0.3016417317840776\%
+    \item CH4 : 0.1767634379498829\%
+    \item CH1 + RE : 27.81905654265422\%
+    \item CH2 + RE : 0.11592208166847057\%
+    \item CH3 + RE : 0.14073851429349368\%
+    \item CH4 + RE : 0.13197283301819474\%
 \end{itemize}
+
+The CH1 with or without redundancy elimination is very bad. The CH2 and CH3 seem equal but the CH4 is clearly better because it prevents redundancy more and thus reduce the number of subsets in the solution.
 
 \subsubsection{Improvement of redundancy elimination}
 
-0.9798387096774194 \% of instances are improved by the redundancy elimination.
+We computed the percentage deviation of each instance with each algorithm with and without redundancy elimination and saw that 98\% of instances are improved by the redundancy elimination. The mean improvement is 0.15, the standard deviation is 0.10 and the maximum is 0.47.
 
-mean : 0.147971704158
-standard deviation 0.10057283968
-max 0.470588235294
-min 0.0
-
-We use a Wilcoxon signed-rank test because we can not assume that the population is normally distributed. We use the \texttt{scipy.stats.wilcoxon} function from \cite{scipywilcoxon} with a confidence interval of 95\% and the null hypothesis that the benchmarks of the algorithms with and without redundancy elimination have the same mean.
-The result is a pvalue of 1.2814523415056763e-41 which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the benchmarks.
+We use a Wilcoxon signed-rank test to test if the mean of the percentage deviation of instances with or without redundancy is similar. We do not use the Student t-test because we can not assume that the population is normally distributed. We use the \texttt{scipy.stats.wilcoxon} function from \cite{scipywilcoxon} with a confidence interval of 9\% and the null hypothesis that the percentage deviations of the sample have the same mean.
+The result is a pvalue of 1.2814523415056763e-41 (less than 0.05) which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the algorithms.
 
 \section{Exercise 2}
 
 \subsection{Implementation}
 
-The \texttt{perturbative\_search} function is parametrized by the type of improvement (first or best) and a \texttt{cost\_function}. It finds a local neighbour that improves the total cost using the \texttt{find\_improvement} function until it is stuck in a local minimum.
-The \texttt{find\_improvement} function browse every neighbour to find the first or best improvement using the following technique. First it removes a subset randomly. Second it completes the partial cover using a greedy static cover cost construction.
+The perturbative local search is implemented with the \texttt{perturbative\_search} function that is parametrized by the type of improvement (first or best) and a \texttt{cost\_function}. This is allows to perform several types of search. 
+The \texttt{find\_improvement} function browse the neighbourhood consisting in removing one solution component randomly and completing the partial cover using a greedy static cover cost construction. It can either return the first improvement or the best depending on a parameter.
 
 \subsection{Results}
 
@@ -113,44 +115,41 @@ The \texttt{find\_improvement} function browse every neighbour to find the first
     \item CH4 + RE + BI : 1.6437082290649414 seconds
 \end{itemize}
 
+As it already was, the CH1 algorithm is very slow and neither the FI nor the BI can improve it. The BI seems slower because it must test more solutions than the FI. Applying the redundancy elimination before the BI or the FI seems to accelerate it.
+
 \subsubsection{Average percentage deviation from best known solutions}
 
 \begin{itemize}
-    \item CH1 + FI : 26.474933439065072 \%
-    \item CH4 + FI : 27.53480266030842 \%
-    \item CH1 + RE + FI : 0.13006999602368838 \%
-    \item CH4 + RE + FI : 0.12505620494919842 \%
-    \item CH1 + BI : 0.3316475551888148 \%
-    \item CH4 + BI : 26.957711390139718 \%
-    \item CH1 + RE + BI : 0.08707997163917548 \%
-    \item CH4 + RE + BI : 0.09924646850675854 \%
+    \item CH1 + FI : 26.474933439065072\%
+    \item CH1 + RE + FI : 27.53480266030842\%
+    \item CH4 + FI : 0.13006999602368838\%
+    \item CH4 + RE + FI : 0.12505620494919842\%
+    \item CH1 + BI : 0.3316475551888148\%
+    \item CH1 + RE + BI : 26.957711390139718\%
+    \item CH4 + BI : 0.08707997163917548\%
+    \item CH4 + RE + BI : 0.09924646850675854\%
 \end{itemize}
+
+The CH1 is still the worse algorithm in terms of accuracy but the BI algorithm allows to correct it considerably. Applying the redundancy elimination sometimes increases and sometimes decreases the score so we can not draw any conclusion from this data only.
+
+We computed the percentage deviation between methods without perturbative search, with FI perturbative search and with BI perturbative search and tested if the results are similar.
 
 \subsubsection{Improvement of first improvement perturbative search}
 
-Fraction of instances improved due to first improvement :  0.6451612903225806
-mean : 0.091904539658
-standard deviation : 0.13249853207
-max : 0.715223097113
-min : 0.0
-The pvalue of 5.1681488905994952e-28 which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the benchmarks.
+First we compared the methods without perturbative search to the FI perturbative search. The fraction of instances improved due to first improvement is 64\%. The mean improvement is 0.09, the standard deviation is 0.13 and the maximum is 0.71, which means that overall the improvement is small.
+Nevertheless we performed a Wilcoxon test and the pvalue of 5.1681488905994952e-28 means that we reject the null hypothesis that the results are similar and conclude that adding a first improvement perturbative search has a significant influence on the results.
 
 \subsubsection{Improvement of best improvement perturbative search}
 
-Fraction of instances improved :  0.7258064516129032
-mean : 7.56904281965
-standard deviation : 16.5287532326
-max : 73.4262295082
-min : -0.117647058824
-The pvalue of 1.0266751909277341e-31 which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the benchmarks.
+Second we compared the methods without perturbative search to the BI perturbative search. The fraction of instances improved is 72\%. The mean improvement is 7.56, the standard deviation is 16.52 and the maximum is 73.42, which means that the results are greatly improved.
+
+We confirmed that performing a Wilcoxon test which gave us a pvalue of 1.0266751909277341e-31 which means that we reject the null hypothesis and conclude that best improvement perturbative search has a significant influence on the results. The statistic value of the test was 33, confirming that the improvement is great.
 
 \subsubsection{Comparison between first and best improvement}
-Fraction of instances improved :  0.6774193548387096
-mean : 5.66356672141
-standard deviation : 12.2925930918
-max : 57.0
-min : -0.117647058824
-The pvalue of 6.0141840973467213e-30 which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the benchmarks.
+
+Third we compared the first and best improvement methods. The fraction of instances improved when switching from first to best improvement is 67\%. The mean of 5.66 and the maximum of 57 confirm that the improvement is great.
+
+The Wilcoxon test conducted obtains a pvalue of 6.0141840973467213e-30 which means that we reject the null hypothesis and conclude that the best improvement method has a significant influence on the results.
 
 \bibliography{main}
 \end{document}

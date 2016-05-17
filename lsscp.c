@@ -32,7 +32,7 @@ char *scp_file="";
 char *output_file="output.txt";
 
 /** Variables to activate algorithms **/
-int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ig=0, dls=0, gen=0, t=100; 
+int ch1=0, ch2=0, ch3=0, ch4=0, bi=0, fi=0, re=0, ig=0, gen=0, t=100; 
 
 /** Instance static variables **/
 int m;            /* number of elements */
@@ -72,7 +72,6 @@ void usage(){
     printf("  --re: applies redundancy elimination after construction.\n");
     printf("  --bi: best improvement.\n");
     printf("  --ig: iterated greedy\n");
-    // printf("  --dls: dynamic local search\n");
     printf("  --gen: genetic algorithm\n");
     printf("\n");
 }
@@ -113,8 +112,6 @@ void read_parameters(int argc, char *argv[]) {
       re=1;
     } else if (strcmp(argv[i], "--ig") == 0) {
       ig=1;
-    // } else if (strcmp(argv[i], "--dls") == 0) {
-    //   dls=1;
     } else if (strcmp(argv[i], "--gen") == 0) {
       gen=1;
     } else if (strcmp(argv[i], "--t") == 0) {
@@ -318,12 +315,9 @@ void construction_search(int (*pick_elem)(), int (*pick_subset)(float (*)(int, i
 
 // pick a non covered element at random
 int random_pick_element(int * y) {
-  int elem;
-  do {
-     elem = rand() % m;
+  for (int i = 0; i < m; ++i) {
+    if (!y[i]) return i;
   }
-  while (y[elem]);
-  return elem;
 }
 
 // pick a non used subset that covers elem at random
@@ -454,24 +448,6 @@ void perturbative_search(char * type, int * x, int * y, int (*cost_function)(int
   free(work_subsets);
 }
 
-// remove one element at random and then complete the solution at random
-// void reconstruct2(int * x, int * y) {
-//   int subset_to_remove;
-//   do {
-//     subset_to_remove = rand() % n;
-//   } while (!x[subset_to_remove]);
-//   remove_subset(subset_to_remove, x, y);
-//   construction_search(random_pick_element, adapted_cover_cost_greedy, x, y);
-// }
-
-// // apply n random move then remove redundant sets
-// void reconstruct(int * x, int * y, int n) {
-//   for (int i = 0; i < n; ++i) {
-//     reconstruct2(x, y);
-//   }
-//   eliminate_redundancy(x, y);
-// }
-
 /************* Hybrid method *************/
 
 void iterated_greedy(int * x, int * y, int t, float alpha) {
@@ -504,57 +480,6 @@ void iterated_greedy(int * x, int * y, int t, float alpha) {
   free(work_elems);
   free(work_subsets);
 }
-
-// int dynamic_cost(penalties, alist) 
-//   int * penalties;
-//   va_alist alist;
-// {
-//   va_start_int(alist);
-//   int * x = va_arg_ptr(alist, int *);
-//   int res = 0;
-//   for (int i = 0; i < n; ++i) {
-//     if (x[i]) {
-//       res += penalties[i] * cost[i];
-//     }
-//   }
-//   va_return_int(alist, res);
-//   return 0;
-// }
-
-// // [Voudouris and Tsang, 1995] 
-// void update_penalties(int * x, int * penalties) {
-//   int total_cost = total_cost_raw(x);
-//   float utility(int i) {
-//     return ((float)total_cost/(float)cost[i]) / (1 + (float)penalties[i]);
-//   }
-//   float max_utility = 0;
-//   for (int i = 0; i < n; ++i) {
-//     if (x[i]) {
-//       float util = utility(i);
-//       if (util > max_utility) {
-//         max_utility = util;
-//       }
-//     }
-//   }
-//   for (int i = 0; i < n; ++i) {
-//     if (x[i] && utility(i) >= max_utility) {
-//       penalties[i] += 1;
-//     }
-//   }
-// }
-
-// void dynamic_local_search(int * x, int * y, int steps) {
-//   construction_search(random_pick_element, greedy_pick_subset, x, y, adapted_cover_cost);
-//   int * penalties = mymalloc(n * sizeof(int));
-//   for (int i = 0; i < n; ++i) {
-//     penalties[i] = 0;
-//   }
-//   do {
-//     perturbative_search("best", x, y, total_cost_raw);
-//     update_penalties(x, penalties);
-//     steps--;
-//   } while (steps > 0);
-// }
 
 /************* Population-based method *************/
 
@@ -617,20 +542,10 @@ void generate_initial_population(int ** population, int population_size, int * p
       y[j] = 0;
     }
     construction_search(random_pick_element, random_pick_subset, population[i], y, static_cost);
-    perturbative_search("best", population[i], y, total_cost_raw);
+    perturbative_search("first", population[i], y, total_cost_raw);
     population_cost[i] = total_cost_raw(population[i]);
   }
 }
-
-// int best_individual(int ** population, int population_size, int * population_cost) {
-//   int best = 0;
-//   for (int i = 1; i < population_size; ++i) {
-//     if (population_cost[i] < population_cost[best]) {
-//       best = i;
-//     }
-//   }
-//   return best;
-// }
 
 float density_matrix() {
   float total = 0;
@@ -644,13 +559,13 @@ void genetic_algorithm(int * x, int * y, int t) {
   int population_size = n * density_matrix();
   int T = 10;
   float mutation_rate = 1.0/(float)population_size;
-  float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0;
   int ** population = mymalloc(population_size * sizeof(int*));
   int * population_cost = mymalloc(population_size * sizeof(int));
   generate_initial_population(population, population_size, population_cost, y);
   // used in parents selection
   int * picked = mymalloc(population_size * sizeof(int));
   int * children = mymalloc(n * sizeof(int));
+  float start = clock()/CLOCKS_PER_SEC, stop = (float)t/1000.0, elapsed;
   do {
     for (int i = 0; i < population_size; ++i) {
       picked[i] = 0;
@@ -709,7 +624,8 @@ void genetic_algorithm(int * x, int * y, int t) {
       children = tmp;
       population_cost[parent_to_replace] = total_cost_raw(population[parent_to_replace]);
     }
-  } while ((clock()/CLOCKS_PER_SEC) - start < stop);
+    elapsed = ((float)clock()/(float)CLOCKS_PER_SEC) - start;
+  } while (elapsed < stop);
   free(children);
   free(picked);
   // Find best solution of population
@@ -831,23 +747,20 @@ int main(int argc, char *argv[]) {
   else if (ig) {
     iterated_greedy(x, y, t, 0.5);
   }
-  // else if (dls) {
-  //   dynamic_local_search(x, y, t);
-  // }
   else if (gen) {
     genetic_algorithm(x, y, t);
   }
   // compute_solution_variables();
   // print_solution(x, y);
-  for (int i = 0; i < m; ++i) {
-    y[i] = 0;
-  }
-  for (int i = 0; i < n; ++i) {
-    if (x[i]) {
-      add_subset_elems(i, y);
-    }
-  }
-  assert(size_elems(y) == m);
+  // for (int i = 0; i < m; ++i) {
+  //   y[i] = 0;
+  // }
+  // for (int i = 0; i < n; ++i) {
+  //   if (x[i]) {
+  //     add_subset_elems(i, y);
+  //   }
+  // }
+  // assert(size_elems(y) == m);
   print_cost(x);
   finalize();
   return EXIT_SUCCESS;
