@@ -31,7 +31,7 @@ The function \texttt{iterated\_greedy} implements this algorithm.
 
 The \textit{genetic algorithm} is heavily inspired by \cite{beasley1996genetic}. 
 It uses a population of size $ n * d $ where $ n $ is the number of subsets and $ d $ the density of the cover matrix. Having a big population helps escaping local minima but is very expensive in terms of time. The original idea used a coefficient more but it was too heavy and did not improve the results much.
-The inital population is generated using \textit{random construction} and \textit{perturbative search with first improvement}. I chose the random construction for its speed and the perturbative search because it can improves a solution, if not well, at least quickly. 
+The inital population is generated using \textit{random construction} and \textit{perturbative search with first improvement}. I chose the random construction for its speed and the perturbative search because it can improves the initial solutions.
 The selection phase is handled using \textit{tournament selection} with a pool size of 10. I also tried \textit{proportional selection} but it was very slow and did not improve the solution. The pool size of 10 (they choose 2 in the paper) allows for more competition between individuals to evoluate quicker.
 I use the \textit{generalised fitness-based} crossover operator from \cite{beasley1996genetic} to create one child by iteration.
 The child is then mutated with a constant mutation rate of $ \frac{1}{population size} $. I reached good results without a variable mutation rate.
@@ -40,47 +40,68 @@ The child then randomly replaces a parent with above than average cost. No child
 
 \subsection{Results}
 
-The \textit{iterative greedy algorithm} obtains an average percentage deviation of 0.087 on all the instances using a run-time of 100 times the CH4 + FI. The run takes 162 seconds. This algorithm is somewhat very basic but it has the property of escaping local minima by randomization, which allows it to perform far better than greedy and perturbative algorithms.
-0.06391166853212994
+The \textit{iterative greedy algorithm} obtains an average percentage deviation of 0.087 on all instances using a run-time of 100 times the CH4 + FI. The run takes 162 seconds. This algorithm is somewhat very basic but it has the property of escaping local minima by randomization, which allows it to perform far better than greedy and perturbative algorithms.
+
+The \textit{genetic algorithm} obtains an average percentage deviation of 0.064 on all instances. It performs slightly better than the iterative greedy but is slower because the initial population construction takes a lot of time.
 
 
 \subsubsection{Relative percentage deviation}
 
 
-\begin{figure}[h]
+\begin{figure}[p]
    \includegraphics[width=\textwidth]{ig.png}
 \end{figure}
 
-\begin{figure}[h]
+\begin{figure}[p]
    \includegraphics[width=\textwidth]{gen.png}
 \end{figure}
 
-\subsubsection{}
+A Wilcoxon test performed on the percentage deviation of the iterative greedy algorithm and the genetic algorithm to the best known values shows that we can reject the hypothesis that they are similar as the pvalue is 0.0015. 
 
-WilcoxonResult(statistic=446.0, pvalue=0.0015218128402173954)
+When we compare the scores obtained with each of the algorithms to the best known scores, we obtain the same result, which lead us to conclude that the results are not accurate. The reason might be that the run-time duration was not long enough.
 
 
 \subsubsection{Optimum}
 
+Indeed the average percentage deviation is far less when the algorithm is let to run for longer in the hope of reaching the optimum. Unfortunately having only 4 values is too less to perform a test on the means as it would be biased by the lack of data.
 
+On the four instances, the \textit{iterative greedy algorithm} obtains an average percentage deviation of 0.071, certainly because of its random nature that prevents it from finding global optima. 
 
-11.444749593734741
-12.9664146900177
-18.01086401939392
-21.693324327468872
-[258]
-[78]
-[234]
-[61]
+Computation times for the iterative greedy algorithm : 
+\begin{itemize}
+    \item scpa1 : 10.002309083938599
+    \item scpb1 : 10.003480672836304
+    \item scpc1 : 14.007994890213013
+    \item scpd1 : 15.004057168960571
+\end{itemize}
 
-10.002309083938599
-10.003480672836304
-14.007994890213013
-15.004057168960571
-[272]
-[81]
-[235]
-[63]
+Scores obtained by the iterative greedy algorithm : 
+
+\begin{itemize}
+    \item scpa1 : 272
+    \item scpb1 : 81
+    \item scpc1 : 235
+    \item scpd1 : 63
+\end{itemize}
+
+The \textit{genetic algorithm} obtains an average percentage deviation of 0.048. On two of the instances, the algorithm is within the 2\% margin but on the two others it is less good.
+
+Computation times for the genetic algorithm : 
+\begin{itemize}
+    \item scpa1 : 11.444749593734741
+    \item scpb1 : 12.9664146900177
+    \item scpc1 : 18.01086401939392
+    \item scpd1 : 21.69332432746887
+\end{itemize}
+
+Scores obtained by the genetic algorithm : 
+
+\begin{itemize}
+    \item scpa1 : 258
+    \item scpb1 : 78
+    \item scpc1 : 234
+    \item scpd1 : 61
+\end{itemize}
 
 
 \bibliography{main}

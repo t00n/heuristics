@@ -59,14 +59,14 @@ These algorithms are very fast but not efficient. They stay easily stuck in loca
 \subsubsection{Total computation times}
 
 \begin{itemize}
-    \item CH1 : 1.3123996257781982 seconds
-    \item CH2 : 1.0234956741333008 seconds
-    \item CH3 : 1.0669968128204346 seconds
-    \item CH4 : 1.0484178066253662 seconds
-    \item CH1 + RE : 3.1139917373657227 seconds
-    \item CH2 + RE : 1.7006745338439941 seconds
-    \item CH3 + RE : 1.4156222343444824 seconds
-    \item CH4 + RE : 1.1701548099517822 seconds
+    \item CH1 : 1.312 seconds
+    \item CH2 : 1.023 seconds
+    \item CH3 : 1.066 seconds
+    \item CH4 : 1.048 seconds
+    \item CH1 + RE : 3.113 seconds
+    \item CH2 + RE : 1.700 seconds
+    \item CH3 + RE : 1.415 seconds
+    \item CH4 + RE : 1.170 seconds
 \end{itemize}
 
 We can see that CH1 is the slowest algorithm, both with and without redundancy elimination. The three others seem to be equal without redundancy elimination but the sophistication of the technique helps reducing the redundancy. The CH2 + RE is far slower than the CH2 than CH3 + RE is to the CH3. The fact that the evaluation function in CH3 and CH4 depends on the number of element of the subset prevents some redundant sets to be added to the solution.
@@ -74,14 +74,14 @@ We can see that CH1 is the slowest algorithm, both with and without redundancy e
 \subsubsection{Average percentage deviation from best known solutions}
 
 \begin{itemize}
-    \item CH1 : 35.29621653608673\%
-    \item CH2 : 0.27405351611183165\%
-    \item CH3 : 0.3016417317840776\%
-    \item CH4 : 0.1767634379498829\%
-    \item CH1 + RE : 27.81905654265422\%
-    \item CH2 + RE : 0.11592208166847057\%
-    \item CH3 + RE : 0.14073851429349368\%
-    \item CH4 + RE : 0.13197283301819474\%
+    \item CH1 : 35.29\%
+    \item CH2 : 0.27405\%
+    \item CH3 : 0.3016\%
+    \item CH4 : 0.1767\%
+    \item CH1 + RE : 27.81\%
+    \item CH2 + RE : 0.11592\%
+    \item CH3 + RE : 0.14073\%
+    \item CH4 + RE : 0.13197\%
 \end{itemize}
 
 The CH1 with or without redundancy elimination is very bad. The CH2 and CH3 seem equal but the CH4 is clearly better because it prevents redundancy more and thus reduce the number of subsets in the solution.
@@ -91,7 +91,7 @@ The CH1 with or without redundancy elimination is very bad. The CH2 and CH3 seem
 We computed the percentage deviation of each instance with each algorithm with and without redundancy elimination and saw that 98\% of instances are improved by the redundancy elimination. The mean improvement is 0.15, the standard deviation is 0.10 and the maximum is 0.47.
 
 We use a Wilcoxon signed-rank test to test if the mean of the percentage deviation of instances with or without redundancy is similar. We do not use the Student t-test because we can not assume that the population is normally distributed. We use the \texttt{scipy.stats.wilcoxon} function from \cite{scipywilcoxon} with a confidence interval of 9\% and the null hypothesis that the percentage deviations of the sample have the same mean.
-The result is a pvalue of 1.2814523415056763e-41 (less than 0.05) which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the algorithms.
+The result is a pvalue of 1.28e-41 (less than 0.05) which means that we reject the null hypothesis and conclude that redundancy elimination has a significant influence on the performance of the algorithms.
 
 \section{Exercise 2}
 
@@ -105,14 +105,14 @@ The \texttt{find\_improvement} function browse the neighbourhood consisting in r
 \subsubsection{Total computation times}
 
 \begin{itemize}
-    \item CH1 + FI : 3.607801914215088 seconds
-    \item CH4 + FI : 1.5206809043884277 seconds
-    \item CH1 + RE + FI : 3.5874764919281006 seconds
-    \item CH4 + RE + FI : 1.3393275737762451 seconds
-    \item CH1 + BI : 3.941063642501831 seconds
-    \item CH4 + BI : 1.5877315998077393 seconds
-    \item CH1 + RE + BI : 3.6423726081848145 seconds
-    \item CH4 + RE + BI : 1.6437082290649414 seconds
+    \item CH1 + FI : 3.60 seconds
+    \item CH4 + FI : 1.520 seconds
+    \item CH1 + RE + FI : 3.587 seconds
+    \item CH4 + RE + FI : 1.339 seconds
+    \item CH1 + BI : 3.94 seconds
+    \item CH4 + BI : 1.587 seconds
+    \item CH1 + RE + BI : 3.642 seconds
+    \item CH4 + RE + BI : 1.643 seconds
 \end{itemize}
 
 As it already was, the CH1 algorithm is very slow and neither the FI nor the BI can improve it. The BI seems slower because it must test more solutions than the FI. Applying the redundancy elimination before the BI or the FI seems to accelerate it.
@@ -120,14 +120,14 @@ As it already was, the CH1 algorithm is very slow and neither the FI nor the BI 
 \subsubsection{Average percentage deviation from best known solutions}
 
 \begin{itemize}
-    \item CH1 + FI : 26.474933439065072\%
-    \item CH1 + RE + FI : 27.53480266030842\%
-    \item CH4 + FI : 0.13006999602368838\%
-    \item CH4 + RE + FI : 0.12505620494919842\%
-    \item CH1 + BI : 0.3316475551888148\%
-    \item CH1 + RE + BI : 26.957711390139718\%
-    \item CH4 + BI : 0.08707997163917548\%
-    \item CH4 + RE + BI : 0.09924646850675854\%
+    \item CH1 + FI : 26.474\%
+    \item CH1 + RE + FI : 27.53\%
+    \item CH4 + FI : 0.13006\%
+    \item CH4 + RE + FI : 0.12505\%
+    \item CH1 + BI : 0.3316\%
+    \item CH1 + RE + BI : 26.957\%
+    \item CH4 + BI : 0.08707\%
+    \item CH4 + RE + BI : 0.09924\%
 \end{itemize}
 
 The CH1 is still the worse algorithm in terms of accuracy but the BI algorithm allows to correct it considerably. Applying the redundancy elimination sometimes increases and sometimes decreases the score so we can not draw any conclusion from this data only.
@@ -143,13 +143,13 @@ Nevertheless we performed a Wilcoxon test and the pvalue of 5.1681488905994952e-
 
 Second we compared the methods without perturbative search to the BI perturbative search. The fraction of instances improved is 72\%. The mean improvement is 7.56, the standard deviation is 16.52 and the maximum is 73.42, which means that the results are greatly improved.
 
-We confirmed that performing a Wilcoxon test which gave us a pvalue of 1.0266751909277341e-31 which means that we reject the null hypothesis and conclude that best improvement perturbative search has a significant influence on the results. The statistic value of the test was 33, confirming that the improvement is great.
+We confirmed that performing a Wilcoxon test which gave us a pvalue of 1.02e-31 which means that we reject the null hypothesis and conclude that best improvement perturbative search has a significant influence on the results. The statistic value of the test was 33, confirming that the improvement is great.
 
 \subsubsection{Comparison between first and best improvement}
 
 Third we compared the first and best improvement methods. The fraction of instances improved when switching from first to best improvement is 67\%. The mean of 5.66 and the maximum of 57 confirm that the improvement is great.
 
-The Wilcoxon test conducted obtains a pvalue of 6.0141840973467213e-30 which means that we reject the null hypothesis and conclude that the best improvement method has a significant influence on the results.
+The Wilcoxon test conducted obtains a pvalue of 6.01e-30 which means that we reject the null hypothesis and conclude that the best improvement method has a significant influence on the results.
 
 \bibliography{main}
 \end{document}
