@@ -23,45 +23,19 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <algorithm>
 #include "pfspinstance.h"
 
 using namespace std;
 
 
-int generateRndPosition(int min, int max)
-{
-  return ( rand() % max + min );
-}
-
-
 /* Fill the solution with numbers between 1 and nbJobs, shuffled */
-void randomPermutation(int nbJobs, vector< int > & sol)
+void randomPermutation(vector< int > & sol)
 {
-  vector<bool> alreadyTaken(nbJobs+1, false); // nbJobs elements with value false
-  vector<int > choosenNumber(nbJobs+1, 0);
-
-  int nbj;
-  int rnd, i, j, nbFalse;
-
-  nbj = 0;
-  for (i = nbJobs; i >= 1; --i)
-  {
-    rnd = generateRndPosition(1, i);
-    nbFalse = 0;
-
-    /* find the rndth cell with value = false : */
-    for (j = 1; nbFalse < rnd; ++j)
-      if ( ! alreadyTaken[j] )
-        ++nbFalse;
-    --j;
-
-    sol[j] = i;
-
-    ++nbj;
-    choosenNumber[nbj] = j;
-
-    alreadyTaken[j] = true;
-  }
+    for (size_t i = 0; i < sol.size(); ++i) {
+        sol[i] = i;
+    }
+    std::random_shuffle(sol.begin(), sol.end());
 }
 
 /***********************************************************************/
@@ -74,12 +48,12 @@ int main(int argc, char *argv[])
 
   if (argc == 1)
   {
-    cout << "Usage: ./flowshopWCT <instance_file>" << endl;
+    cout << "Usage: " << argv[0] << " <instance_file>" << endl;
     return 0;
   }
 
   /* initialize random seed: */
-  srand ( time(NULL) );
+  srand(42);
 
   /* Create instance object */
   PfspInstance instance;
@@ -91,13 +65,13 @@ int main(int argc, char *argv[])
   /* Create a vector of int to represent the solution
     WARNING: By convention, we store the jobs starting from index 1,
              thus the size nbJob + 1. */
-  vector< int > solution ( instance.getNbJob()+ 1 );
+  vector<int> solution(instance.getNbJob());
 
   /* Fill the vector with a random permutation */
-  randomPermutation(instance.getNbJob(), solution);
+  randomPermutation(solution);
 
   cout << "Random solution: " ;
-  for (i = 1; i <= instance.getNbJob(); ++i)
+  for (i = 0; i < instance.getNbJob(); ++i)
     cout << solution[i] << " " ;
   cout << endl;
 

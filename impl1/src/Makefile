@@ -7,8 +7,6 @@ EXEC = fssp
 
 all: $(EXEC)
 
-run: $(EXEC)
-	./$^
 
 $(EXEC): $(OBJ) $(HEAD)
 	$(CXX) $(CXXFLAGS) $(OBJ) -o $@
