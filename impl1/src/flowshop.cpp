@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <cstring>
 #include "pfspinstance.hpp"
 #include "init.hpp"
 
@@ -49,10 +50,42 @@ int main(int argc, char *argv[])
     long int totalWeightedTardiness;
 
 
-    if (argc == 1)
+    if (argc < 2)
     {
-        std::cout << "Usage: " << argv[0] << " <instance_file>" << std::endl;
+        std::cout << "Usage: " << argv[0] << " <instance_file> <options>" << std::endl;
+        std::cout << "where <options> are --first --best" << std::endl;
+        std::cout << "                    --transpose --exchange --insert" << std::endl;
+        std::cout << "                    --random-init --srz" << std::endl;
         return 0;
+    }
+    int first = 0;
+    int transpose = 0;
+    int random = 0;
+    for (int i = 2; i < argc; ++i) {
+        if (strcmp(argv[i], "--first") == 0) {
+            first = 0;
+        }
+        else if (strcmp(argv[i], "--best") == 0) {
+            first = 1;
+        }
+        else if (strcmp(argv[i], "--transpose") == 0) {
+            transpose = 0;
+        }
+        else if (strcmp(argv[i], "--exchange") == 0) {
+            transpose = 1;
+        }
+        else if (strcmp(argv[i], "--insert") == 0) {
+            transpose = 2;
+        }
+        else if (strcmp(argv[i], "--random-init") == 0) {
+            random = 0;
+        }
+        else if (strcmp(argv[i], "--srz") == 0) {
+            random = 1;
+        }
+        else {
+            std::cout << "Argument not recognized " << argv[i] << std::endl;
+        }
     }
 
     /* initialize random seed: */
@@ -68,8 +101,30 @@ int main(int argc, char *argv[])
 
     PfspSolution solution(instance.getNbJob());
 
-    /* Fill the vector with a random permutation */
-    randomPermutation(solution);
+    if (random == 0) {
+        /* Fill the vector with a random permutation */
+        randomPermutation(solution);
+    }
+    else {
+        // RZ
+    }
+
+    if (first == 0) {
+
+    }
+    else {
+
+    }
+
+    if (transpose == 0) {
+
+    }
+    else if (transpose == 1) {
+
+    }
+    else {
+
+    }
 
     std::cout << "Random solution: " ;
     printSolution(solution);
