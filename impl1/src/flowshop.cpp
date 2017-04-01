@@ -31,6 +31,16 @@ void printVector(std::vector<T> const & v) {
     std::cout << std::endl;
 }
 
+typedef std::vector<int> PfspSolution;
+
+void printSolution(PfspSolution const & sol) {
+    PfspSolution v(sol);
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        (*it)++;
+    }
+    printVector(v);
+}
+
 
 /***********************************************************************/
 
@@ -56,13 +66,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::vector<int> solution(instance.getNbJob());
+    PfspSolution solution(instance.getNbJob());
 
     /* Fill the vector with a random permutation */
     randomPermutation(solution);
 
     std::cout << "Random solution: " ;
-    printVector(solution);
+    printSolution(solution);
 
     /* Compute the TWT of this solution */
     totalWeightedTardiness = instance.computeScore(solution);
