@@ -39,12 +39,12 @@ PfspInstance::~PfspInstance()
 
 int PfspInstance::getNbJob()
 {
-  return nbJob;
+    return nbJob;
 }
 
 int PfspInstance::getNbMac()
 {
-  return nbMac;
+    return nbMac;
 }
 
 
@@ -52,28 +52,25 @@ int PfspInstance::getNbMac()
 /* Allow the memory for the processing times matrix : */
 void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 {
-  processingTimesMatrix.resize(nbJ+1);          // 1st dimension
+    processingTimesMatrix.resize(nbJ);          // 1st dimension
 
-  for (int cpt = 0; cpt < nbJ+1; ++cpt)
-    processingTimesMatrix[cpt].resize(nbM+1); // 2nd dimension
+    for (int cpt = 0; cpt < nbJ; ++cpt) {
+        processingTimesMatrix[cpt].resize(nbM); // 2nd dimension
+    }
 
-	dueDates.resize(nbJ+1);
-	priority.resize(nbJ+1);
+    dueDates.resize(nbJ);
+    priority.resize(nbJ);
 }
 
 
 long int PfspInstance::getTime(int job, int machine)
 {
-  if (job == 0)
-    return 0;
-  else
-  {
-    if ((job < 1) || (job > nbJob) || (machine < 1) || (machine > nbMac))
+    if ((job < 0) || (job >= nbJob) || (machine < 0) || (machine >= nbMac)) {
       cout    << "ERROR. file:pfspInstance.cpp, method:getTime. Out of bound. job=" << job
           << ", machine=" << machine << std::endl;
+    }
 
     return processingTimesMatrix[job][machine];
-  }
 }
 
 
@@ -102,7 +99,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 	fileIn.open(fileName);
 
-	if ( fileIn.is_open() ) {
+	if (fileIn.is_open()) {
         cout << "File " << fileName << " is now open, start to read..." << std::endl;
 
 		fileIn >> nbJob;
@@ -114,9 +111,9 @@ bool PfspInstance::readDataFromFile(char * fileName)
         cout << "Memory allowed." << std::endl;
         cout << "Start to read matrix..." << std::endl;
 
-		for (j = 1; j <= nbJob; ++j)
+		for (j = 0; j < nbJob; ++j)
 		{
-			for (m = 1; m <= nbMac; ++m)
+			for (m = 0; m < nbMac; ++m)
 			{
 				fileIn >> readValue; // The number of each machine, not important !
 				fileIn >> readValue; // Process Time
@@ -126,7 +123,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 		}
         fileIn >> str; // this is not read
 
-		for (j = 1; j <= nbJob; ++j)
+		for (j = 0; j < nbJob; ++j)
 		{
 			fileIn >> readValue; // -1
 			fileIn >> readValue;
@@ -152,41 +149,41 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeScore(vector< int > & sol)
+long int PfspInstance::computeScore(vector<int> & sol)
 {
 	int j, m;
 	int jobNumber;
 	long int score;
 
 	/* We need end times on previous machine : */
-	vector< long int > previousMachineEndTime ( nbJob + 1 );
+	vector<long int> previousMachineEndTime(nbJob);
 	/* And the end time of the previous job, on the same machine : */
 
 	/* 1st machine : */
-	previousMachineEndTime[0] = 0;
-	for ( j = 1; j <= nbJob; ++j )
+	previousMachineEndTime[0] = processingTimesMatrix[sol[0]][0];
+	for (j = 1; j < nbJob; ++j)
 	{
-		jobNumber = sol[j-1];
-		previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][1];
+		jobNumber = sol[j];
+		previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][0];
 	}
 
 	/* others machines : */
-	for ( m = 2; m <= nbMac; ++m )
+	for (m = 1; m < nbMac; ++m)
 	{
-		for ( j = 1; j <= nbJob; ++j )
+		for (j = 0; j < nbJob; ++j)
 		{
-			jobNumber = sol[j-1];
+			jobNumber = sol[j];
 
             previousMachineEndTime[j] = std::max(
                 previousMachineEndTime[j],
-                previousMachineEndTime[j-1]
-            ) + processingTimesMatrix[jobNumber][m];
+                (j == 0 ? 0 : previousMachineEndTime[j-1])
+           ) + processingTimesMatrix[jobNumber][m];
 		}
 	}
 
 	score = 0;
 	for (j = 0; j < nbJob; ++j)
-	    score += previousMachineEndTime[j+1] * priority[sol[j]];
+	    score += previousMachineEndTime[j] * priority[sol[j]];
 
 	return score;
 }

@@ -34,7 +34,7 @@ class PfspInstance{
     std::vector< long int > dueDates;
     std::vector< long int > priority;
 
-    std::vector< std::vector <long int> > processingTimesMatrix;
+    std::vector<std::vector<long int>> processingTimesMatrix;
 
     /* Allow the memory for the processing times matrix : */
     void allowMatrixMemory(int nbJ, int nbM);
@@ -61,7 +61,7 @@ class PfspInstance{
     /* Read Data from a file : */
     bool readDataFromFile(char * fileName);
 
-    long int computeScore (vector< int > & sol);
+    long int computeScore(vector<int>& sol);
 };
 
 #endif

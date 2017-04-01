@@ -29,8 +29,17 @@
 using namespace std;
 
 
+template<typename T>
+void printVector(std::vector<T> const & v) {
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        cout << *it << " ";
+    }
+    cout << endl;
+}
+
+
 /* Fill the solution with numbers between 1 and nbJobs, shuffled */
-void randomPermutation(vector< int > & sol)
+void randomPermutation(vector<int> & sol)
 {
     for (size_t i = 0; i < sol.size(); ++i) {
         sol[i] = i;
@@ -42,42 +51,37 @@ void randomPermutation(vector< int > & sol)
 
 int main(int argc, char *argv[])
 {
-  int i;
-  long int totalWeightedTardiness;
+    long int totalWeightedTardiness;
 
 
-  if (argc == 1)
-  {
-    cout << "Usage: " << argv[0] << " <instance_file>" << endl;
+    if (argc == 1)
+    {
+        cout << "Usage: " << argv[0] << " <instance_file>" << endl;
+        return 0;
+    }
+
+    /* initialize random seed: */
+    srand(42);
+
+    /* Create instance object */
+    PfspInstance instance;
+
+    /* Read data from file */
+    if (! instance.readDataFromFile(argv[1])) {
+        return 1;
+    }
+
+    vector<int> solution(instance.getNbJob());
+
+    /* Fill the vector with a random permutation */
+    randomPermutation(solution);
+
+    cout << "Random solution: " ;
+    printVector(solution);
+
+    /* Compute the TWT of this solution */
+    totalWeightedTardiness = instance.computeScore(solution);
+    cout << "Total weighted completion time: " << totalWeightedTardiness << endl;
+
     return 0;
-  }
-
-  /* initialize random seed: */
-  srand(42);
-
-  /* Create instance object */
-  PfspInstance instance;
-
-  /* Read data from file */
-  if (! instance.readDataFromFile(argv[1]) )
-    return 1;
-
-  /* Create a vector of int to represent the solution
-    WARNING: By convention, we store the jobs starting from index 1,
-             thus the size nbJob + 1. */
-  vector<int> solution(instance.getNbJob());
-
-  /* Fill the vector with a random permutation */
-  randomPermutation(solution);
-
-  cout << "Random solution: " ;
-  for (i = 0; i < instance.getNbJob(); ++i)
-    cout << solution[i] << " " ;
-  cout << endl;
-
-  /* Compute the TWT of this solution */
-  totalWeightedTardiness = instance.computeScore(solution);
-  cout << "Total weighted completion time: " << totalWeightedTardiness << endl;
-
-  return 0;
 }
