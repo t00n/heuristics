@@ -19,20 +19,17 @@
  ***************************************************************************/
 
 
-#ifndef _PFSPINSTANCEWT_H_
-#define _PFSPINSTANCEWT_H_
+#ifndef __PFSPINSTANCE_HPP
+#define __PFSPINSTANCE_HPP
 
-#include <string>
 #include <vector>
 
-using namespace std;
-
 class PfspInstance{
-  private:
+private:
     int nbJob;
     int nbMac;
-    std::vector< long int > dueDates;
-    std::vector< long int > priority;
+    std::vector<long int> dueDates;
+    std::vector<long int> priority;
 
     std::vector<std::vector<long int>> processingTimesMatrix;
 
@@ -43,7 +40,7 @@ class PfspInstance{
     // void setTime(int job, int machine, long int processTime);
     // void setPriority(int job, int value);
 
-  public:
+public:
     PfspInstance();
     ~PfspInstance();
 
@@ -61,7 +58,7 @@ class PfspInstance{
     /* Read Data from a file : */
     bool readDataFromFile(char * fileName);
 
-    long int computeScore(vector<int>& sol);
+    long int computeScore(std::vector<int>& sol);
 };
 
 #endif

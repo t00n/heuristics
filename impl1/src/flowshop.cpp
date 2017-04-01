@@ -19,33 +19,18 @@
  ***************************************************************************/
 
 #include <iostream>
-#include <cstdlib>
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-#include <algorithm>
-#include "pfspinstance.h"
-
-using namespace std;
+#include "pfspinstance.hpp"
+#include "init.hpp"
 
 
 template<typename T>
 void printVector(std::vector<T> const & v) {
     for (auto it = v.begin(); it != v.end(); ++it) {
-        cout << *it << " ";
+        std::cout << *it << " ";
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
-
-/* Fill the solution with numbers between 1 and nbJobs, shuffled */
-void randomPermutation(vector<int> & sol)
-{
-    for (size_t i = 0; i < sol.size(); ++i) {
-        sol[i] = i;
-    }
-    std::random_shuffle(sol.begin(), sol.end());
-}
 
 /***********************************************************************/
 
@@ -56,7 +41,7 @@ int main(int argc, char *argv[])
 
     if (argc == 1)
     {
-        cout << "Usage: " << argv[0] << " <instance_file>" << endl;
+        std::cout << "Usage: " << argv[0] << " <instance_file>" << std::endl;
         return 0;
     }
 
@@ -71,17 +56,17 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    vector<int> solution(instance.getNbJob());
+    std::vector<int> solution(instance.getNbJob());
 
     /* Fill the vector with a random permutation */
     randomPermutation(solution);
 
-    cout << "Random solution: " ;
+    std::cout << "Random solution: " ;
     printVector(solution);
 
     /* Compute the TWT of this solution */
     totalWeightedTardiness = instance.computeScore(solution);
-    cout << "Total weighted completion time: " << totalWeightedTardiness << endl;
+    std::cout << "Total weighted completion time: " << totalWeightedTardiness << std::endl;
 
     return 0;
 }

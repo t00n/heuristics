@@ -21,12 +21,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <cmath>
 #include <cstring>
-#include "pfspinstance.h"
-
-
-using namespace std;
+#include "pfspinstance.hpp"
 
 PfspInstance::PfspInstance()
 {
@@ -66,7 +62,7 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 long int PfspInstance::getTime(int job, int machine)
 {
     if ((job < 0) || (job >= nbJob) || (machine < 0) || (machine >= nbMac)) {
-      cout    << "ERROR. file:pfspInstance.cpp, method:getTime. Out of bound. job=" << job
+      std::cout    << "ERROR. file:pfspInstance.cpp, method:getTime. Out of bound. job=" << job
           << ", machine=" << machine << std::endl;
     }
 
@@ -80,8 +76,8 @@ bool PfspInstance::readDataFromFile(char * fileName)
 	bool everythingOK = true;
 	int j, m; // iterators
 	long int readValue;
-	string str;
-	ifstream fileIn;
+	std::string str;
+	std::ifstream fileIn;
 	char * aux2;
 	char fileNameOK[100] = "";
 
@@ -94,22 +90,22 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 	strcat(fileNameOK, aux2);
 
-	cout << "name : " << fileNameOK << endl;
-	cout << "file : " << fileName << endl;
+	std::cout << "name : " << fileNameOK << std::endl;
+	std::cout << "file : " << fileName << std::endl;
 
 	fileIn.open(fileName);
 
 	if (fileIn.is_open()) {
-        cout << "File " << fileName << " is now open, start to read..." << std::endl;
+        std::cout << "File " << fileName << " is now open, start to read..." << std::endl;
 
 		fileIn >> nbJob;
-        cout << "Number of jobs : " << nbJob << std::endl;
+        std::cout << "Number of jobs : " << nbJob << std::endl;
 		fileIn >> nbMac;
-        cout << "Number of machines : " << nbMac << std::endl;
-        cout << "Allow memory for the matrix..." << std::endl;
+        std::cout << "Number of machines : " << nbMac << std::endl;
+        std::cout << "Allow memory for the matrix..." << std::endl;
 		allowMatrixMemory(nbJob, nbMac);
-        cout << "Memory allowed." << std::endl;
-        cout << "Start to read matrix..." << std::endl;
+        std::cout << "Memory allowed." << std::endl;
+        std::cout << "Start to read matrix..." << std::endl;
 
 		for (j = 0; j < nbJob; ++j)
 		{
@@ -133,12 +129,12 @@ bool PfspInstance::readDataFromFile(char * fileName)
             priority[j] = readValue;
 		}
 
-        cout << "All is read from file." << std::endl;
+        std::cout << "All is read from file." << std::endl;
 		fileIn.close();
 	}
 	else
 	{
-		cout    << "ERROR. file:pfspInstance.cpp, method:readDataFromFile, "
+		std::cout    << "ERROR. file:pfspInstance.cpp, method:readDataFromFile, "
 				<< "error while opening file " << fileName << std::endl;
 
 		everythingOK = false;
@@ -149,14 +145,14 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeScore(vector<int> & sol)
+long int PfspInstance::computeScore(std::vector<int> & sol)
 {
 	int j, m;
 	int jobNumber;
 	long int score;
 
 	/* We need end times on previous machine : */
-	vector<long int> previousMachineEndTime(nbJob);
+	std::vector<long int> previousMachineEndTime(nbJob);
 	/* And the end time of the previous job, on the same machine : */
 
 	/* 1st machine : */
