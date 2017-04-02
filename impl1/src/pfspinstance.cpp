@@ -33,12 +33,12 @@ PfspInstance::~PfspInstance()
 {
 }
 
-int PfspInstance::getNbJob()
+int PfspInstance::getNbJob() const
 {
     return nbJob;
 }
 
-int PfspInstance::getNbMac()
+int PfspInstance::getNbMac() const
 {
     return nbMac;
 }
@@ -59,7 +59,7 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 }
 
 
-long int PfspInstance::getTime(int job, int machine)
+long int PfspInstance::getTime(int job, int machine) const
 {
     if ((job < 0) || (job >= nbJob) || (machine < 0) || (machine >= nbMac)) {
       std::cout    << "ERROR. file:pfspInstance.cpp, method:getTime. Out of bound. job=" << job
@@ -69,6 +69,24 @@ long int PfspInstance::getTime(int job, int machine)
     return processingTimesMatrix[job][machine];
 }
 
+
+long int PfspInstance::getDueDate(int job) const
+{
+    if ((job < 0) || (job >= nbJob)) {
+      std::cout    << "ERROR. file:pfspInstance.cpp, method:getDueDate. Out of bound. job=" << job << std::endl;
+    }
+
+    return dueDates[job];
+}
+
+long int PfspInstance::getPriority(int job) const
+{
+    if ((job < 0) || (job >= nbJob)) {
+      std::cout    << "ERROR. file:pfspInstance.cpp, method:getPriority. Out of bound. job=" << job << std::endl;
+    }
+
+    return priority[job];
+}
 
 /* Read the instance from file : */
 bool PfspInstance::readDataFromFile(char * fileName)
@@ -145,19 +163,20 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeScore(std::vector<int> & sol)
+long int PfspInstance::computeScore(std::vector<int> & sol) const
 {
-	int j, m;
+	size_t j;
+    int m;
 	int jobNumber;
 	long int score;
 
 	/* We need end times on previous machine : */
-	std::vector<long int> previousMachineEndTime(nbJob);
+	std::vector<long int> previousMachineEndTime(sol.size());
 	/* And the end time of the previous job, on the same machine : */
 
 	/* 1st machine : */
 	previousMachineEndTime[0] = processingTimesMatrix[sol[0]][0];
-	for (j = 1; j < nbJob; ++j)
+	for (j = 1; j < sol.size(); ++j)
 	{
 		jobNumber = sol[j];
 		previousMachineEndTime[j] = previousMachineEndTime[j-1] + processingTimesMatrix[jobNumber][0];
@@ -166,7 +185,7 @@ long int PfspInstance::computeScore(std::vector<int> & sol)
 	/* others machines : */
 	for (m = 1; m < nbMac; ++m)
 	{
-		for (j = 0; j < nbJob; ++j)
+		for (j = 0; j < sol.size(); ++j)
 		{
 			jobNumber = sol[j];
 
@@ -178,7 +197,7 @@ long int PfspInstance::computeScore(std::vector<int> & sol)
 	}
 
 	score = 0;
-	for (j = 0; j < nbJob; ++j)
+	for (j = 0; j < sol.size(); ++j)
 	    score += previousMachineEndTime[j] * priority[sol[j]];
 
 	return score;

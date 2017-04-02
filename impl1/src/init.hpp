@@ -2,7 +2,11 @@
 #define __INIT_HPP
 
 #include <vector>
+#include "pfspinstance.hpp"
+#include "pfspsolution.hpp"
 
-void randomPermutation(std::vector<int> & sol);
+void orderedSolution(const PfspInstance & instance, PfspSolution & sol);
+void randomPermutation(const PfspInstance & instance, PfspSolution & sol);
+void simplifiedRZ(const PfspInstance & instance, PfspSolution & sol);
 
 #endif // __INIT_HPP

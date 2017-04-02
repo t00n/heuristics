@@ -45,20 +45,20 @@ public:
     ~PfspInstance();
 
     /* Read write privates attributs : */
-    int getNbJob();
-    int getNbMac();
+    int getNbJob() const;
+    int getNbMac() const;
 
     /* Read\Write values in the matrix : */
-    long int getTime(int job, int machine);
+    long int getTime(int job, int machine) const;
 
-    long int getDueDate(int job);
+    long int getDueDate(int job) const;
 
-    long int getPriority(int job);
+    long int getPriority(int job) const;
 
     /* Read Data from a file : */
     bool readDataFromFile(char * fileName);
 
-    long int computeScore(std::vector<int>& sol);
+    long int computeScore(std::vector<int>& sol) const;
 };
 
 #endif
