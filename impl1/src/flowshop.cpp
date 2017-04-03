@@ -69,10 +69,12 @@ int main(int argc, char *argv[])
             init = InitType::SRZ;
         }
         else if (strcmp(argv[i], "--tei") == 0) {
+            init = InitType::SRZ;
             improvement = ImprovementType::FIRST;
             neighbourhoods = {NeighbourhoodType::TRANSPOSE, NeighbourhoodType::EXCHANGE, NeighbourhoodType::INSERT};
         }
         else if (strcmp(argv[i], "--tie") == 0) {
+            init = InitType::SRZ;
             improvement = ImprovementType::FIRST;
             neighbourhoods = {NeighbourhoodType::TRANSPOSE, NeighbourhoodType::INSERT, NeighbourhoodType::EXCHANGE};
         }
