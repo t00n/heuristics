@@ -40,10 +40,11 @@ int main(int argc, char *argv[])
         std::cout << "where <options> are --first --best" << std::endl;
         std::cout << "                    --transpose --exchange --insert" << std::endl;
         std::cout << "                    --random-init --srz" << std::endl;
+        std::cout << "                    --tie --tei" << std::endl;
         return 0;
     }
     ImprovementType improvement = ImprovementType::FIRST;
-    NeighbourhoodType neighbourhood = NeighbourhoodType::TRANSPOSE;
+    std::vector<NeighbourhoodType> neighbourhoods = {};
     InitType init = InitType::RANDOM;
     for (int i = 2; i < argc; ++i) {
         if (strcmp(argv[i], "--first") == 0) {
@@ -53,13 +54,13 @@ int main(int argc, char *argv[])
             improvement = ImprovementType::BEST;
         }
         else if (strcmp(argv[i], "--transpose") == 0) {
-            neighbourhood = NeighbourhoodType::TRANSPOSE;
+            neighbourhoods.push_back(NeighbourhoodType::TRANSPOSE);
         }
         else if (strcmp(argv[i], "--exchange") == 0) {
-            neighbourhood = NeighbourhoodType::EXCHANGE;
+            neighbourhoods.push_back(NeighbourhoodType::EXCHANGE);
         }
         else if (strcmp(argv[i], "--insert") == 0) {
-            neighbourhood = NeighbourhoodType::INSERT;
+            neighbourhoods.push_back(NeighbourhoodType::INSERT);
         }
         else if (strcmp(argv[i], "--random-init") == 0) {
             init = InitType::RANDOM;
@@ -67,8 +68,16 @@ int main(int argc, char *argv[])
         else if (strcmp(argv[i], "--srz") == 0) {
             init = InitType::SRZ;
         }
+        else if (strcmp(argv[i], "--tei") == 0) {
+            improvement = ImprovementType::FIRST;
+            neighbourhoods = {NeighbourhoodType::TRANSPOSE, NeighbourhoodType::EXCHANGE, NeighbourhoodType::INSERT};
+        }
+        else if (strcmp(argv[i], "--tie") == 0) {
+            improvement = ImprovementType::FIRST;
+            neighbourhoods = {NeighbourhoodType::TRANSPOSE, NeighbourhoodType::INSERT, NeighbourhoodType::EXCHANGE};
+        }
         else {
-            std::cout << "Argument not recognized " << argv[i] << std::endl;
+            std::cerr << "Argument not recognized " << argv[i] << std::endl;
         }
     }
 
@@ -83,7 +92,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    IterativeImprovement algo(instance, init, improvement, neighbourhood);
+    IterativeImprovement algo(instance, init, improvement, neighbourhoods);
     algo.solve();
     PfspSolution solution = algo.getSolution();
 

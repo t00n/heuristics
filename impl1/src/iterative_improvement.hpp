@@ -32,10 +32,10 @@ private:
 	PfspSolution solution;
 	std::function<void(const PfspInstance & instance, PfspSolution&)> initFunction;
 	std::function<std::experimental::optional<PfspSolution>(const PfspInstance&, const PfspSolution&, const std::vector<PfspSolution>&)> improvementFunction;
-	std::function<std::vector<PfspSolution>(const PfspSolution&)> neighbourhoodFunction;
+	std::vector<std::function<std::vector<PfspSolution>(const PfspSolution&)>> neighbourhoodFunctions;
 
 public:
-	IterativeImprovement(const PfspInstance & instance, InitType init, ImprovementType impvmnt, NeighbourhoodType neighbourhood);
+	IterativeImprovement(const PfspInstance & instance, InitType init, ImprovementType impvmnt, std::vector<NeighbourhoodType> neighbourhoods);
 
 	void solve();
 

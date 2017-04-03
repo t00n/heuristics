@@ -81,7 +81,7 @@ std::experimental::optional<PfspSolution> bestImprovement(const PfspInstance& in
 
 
 
-IterativeImprovement::IterativeImprovement(const PfspInstance & instance, InitType init, ImprovementType impvmnt, NeighbourhoodType neighbourhood)
+IterativeImprovement::IterativeImprovement(const PfspInstance & instance, InitType init, ImprovementType impvmnt, std::vector<NeighbourhoodType> neighbourhoods)
 {
 	this->instance = instance;
 	if (init == InitType::RANDOM) {
@@ -96,14 +96,16 @@ IterativeImprovement::IterativeImprovement(const PfspInstance & instance, InitTy
 	else if (impvmnt == ImprovementType::BEST) {
 		improvementFunction = bestImprovement;
 	}
-	if (neighbourhood == NeighbourhoodType::TRANSPOSE) {
-		neighbourhoodFunction = transposeNeighbourhood;
-	}
-	else if (neighbourhood == NeighbourhoodType::EXCHANGE) {
-		neighbourhoodFunction = exchangeNeighbourhood;
-	}
-	else if (neighbourhood == NeighbourhoodType::INSERT) {
-		neighbourhoodFunction = insertNeighbourhood;
+	for (auto neighbourhood : neighbourhoods) {
+		if (neighbourhood == NeighbourhoodType::TRANSPOSE) {
+			neighbourhoodFunctions.push_back(transposeNeighbourhood);
+		}
+		else if (neighbourhood == NeighbourhoodType::EXCHANGE) {
+			neighbourhoodFunctions.push_back(exchangeNeighbourhood);
+		}
+		else if (neighbourhood == NeighbourhoodType::INSERT) {
+			neighbourhoodFunctions.push_back(insertNeighbourhood);
+		}
 	}
 }
 
@@ -113,15 +115,18 @@ void IterativeImprovement::solve()
 	bool has_improved = false;
 	std::cerr << "Initial :" << this->instance.computeScore(this->solution) << std::endl;
 	do {
-		auto neighbourhood = neighbourhoodFunction(this->solution);
-		auto improvement = improvementFunction(this->instance, this->solution, neighbourhood);
-		if (improvement) {
-			has_improved = true;
-			this->solution = improvement.value();
-			std::cerr << "Improvement :" << this->instance.computeScore(this->solution) << std::endl;
-		}
-		else {
-			has_improved = false;
+		for (auto neighbourhoodFunction : neighbourhoodFunctions) {
+			auto neighbourhood = neighbourhoodFunction(this->solution);
+			auto improvement = improvementFunction(this->instance, this->solution, neighbourhood);
+			if (improvement) {
+				has_improved = true;
+				this->solution = improvement.value();
+				std::cerr << "Improvement :" << this->instance.computeScore(this->solution) << std::endl;
+				break;
+			}
+			else {
+				has_improved = false;
+			}
 		}
 	} while (has_improved);
 }
