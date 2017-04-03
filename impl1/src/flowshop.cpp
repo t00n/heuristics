@@ -23,6 +23,7 @@
 #include "pfspinstance.hpp"
 #include "init.hpp"
 #include "pfspsolution.hpp"
+#include "iterative_improvement.hpp"
 
 
 
@@ -41,30 +42,30 @@ int main(int argc, char *argv[])
         std::cout << "                    --random-init --srz" << std::endl;
         return 0;
     }
-    int first = 0;
-    int transpose = 0;
-    int random = 0;
+    ImprovementType improvement = ImprovementType::FIRST;
+    NeighbourhoodType neighbourhood = NeighbourhoodType::TRANSPOSE;
+    InitType init = InitType::RANDOM;
     for (int i = 2; i < argc; ++i) {
         if (strcmp(argv[i], "--first") == 0) {
-            first = 0;
+            improvement = ImprovementType::FIRST;
         }
         else if (strcmp(argv[i], "--best") == 0) {
-            first = 1;
+            improvement = ImprovementType::BEST;
         }
         else if (strcmp(argv[i], "--transpose") == 0) {
-            transpose = 0;
+            neighbourhood = NeighbourhoodType::TRANSPOSE;
         }
         else if (strcmp(argv[i], "--exchange") == 0) {
-            transpose = 1;
+            neighbourhood = NeighbourhoodType::EXCHANGE;
         }
         else if (strcmp(argv[i], "--insert") == 0) {
-            transpose = 2;
+            neighbourhood = NeighbourhoodType::INSERT;
         }
         else if (strcmp(argv[i], "--random-init") == 0) {
-            random = 0;
+            init = InitType::RANDOM;
         }
         else if (strcmp(argv[i], "--srz") == 0) {
-            random = 1;
+            init = InitType::SRZ;
         }
         else {
             std::cout << "Argument not recognized " << argv[i] << std::endl;
@@ -84,7 +85,7 @@ int main(int argc, char *argv[])
 
     PfspSolution solution;
 
-    if (random == 0) {
+    if (init == InitType::RANDOM) {
         /* Fill the vector with a random permutation */
         randomPermutation(instance, solution);
     }
@@ -92,17 +93,17 @@ int main(int argc, char *argv[])
         simplifiedRZ(instance, solution);
     }
 
-    if (first == 0) {
+    if (improvement == ImprovementType::FIRST) {
 
     }
     else {
 
     }
 
-    if (transpose == 0) {
+    if (neighbourhood == NeighbourhoodType::TRANSPOSE) {
 
     }
-    else if (transpose == 1) {
+    else if (neighbourhood == NeighbourhoodType::EXCHANGE) {
 
     }
     else {
