@@ -25,7 +25,7 @@ void simplifiedRZ(const PfspInstance & instance, PfspSolution & sol)
 	PfspSolution ordered_by_process_time;
 	orderedSolution(instance, ordered_by_process_time);
 	// sort the jobs by ascending order of weighted processing time
-	std::sort(ordered_by_process_time.begin(),
+	std::stable_sort(ordered_by_process_time.begin(),
 		      ordered_by_process_time.end(),
 		      [&instance](int a, int b) {
 	      	      double weightA = 0, weightB = 0;
@@ -37,6 +37,7 @@ void simplifiedRZ(const PfspInstance & instance, PfspSolution & sol)
 	      	      weightB /= instance.getPriority(b);
 	      	      return weightA <= weightB;
 		      });
+
 	// add each job in the position that minimizes the score of the partial solution
 	for (auto job : ordered_by_process_time)
 	{
