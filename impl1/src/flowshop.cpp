@@ -54,13 +54,13 @@ int main(int argc, char *argv[])
             improvement = ImprovementType::BEST;
         }
         else if (strcmp(argv[i], "--transpose") == 0) {
-            neighbourhoods.push_back(NeighbourhoodType::TRANSPOSE);
+            neighbourhoods = {NeighbourhoodType::TRANSPOSE};
         }
         else if (strcmp(argv[i], "--exchange") == 0) {
-            neighbourhoods.push_back(NeighbourhoodType::EXCHANGE);
+            neighbourhoods = {NeighbourhoodType::EXCHANGE};
         }
         else if (strcmp(argv[i], "--insert") == 0) {
-            neighbourhoods.push_back(NeighbourhoodType::INSERT);
+            neighbourhoods = {NeighbourhoodType::INSERT};
         }
         else if (strcmp(argv[i], "--random-init") == 0) {
             init = InitType::RANDOM;
