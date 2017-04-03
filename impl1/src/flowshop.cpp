@@ -87,12 +87,13 @@ int main(int argc, char *argv[])
     algo.solve();
     PfspSolution solution = algo.getSolution();
 
-    std::cout << "Solution: " ;
+    std::cerr << "Solution: " ;
     printSolution(solution);
 
     /* Compute the TWT of this solution */
     totalWeightedTardiness = instance.computeScore(solution);
-    std::cout << "Total weighted completion time: " << totalWeightedTardiness << std::endl;
+    std::cerr << "Total weighted completion time: ";
+    std::cout << totalWeightedTardiness << std::endl;
 
     return 0;
 }

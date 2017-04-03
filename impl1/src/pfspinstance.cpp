@@ -62,7 +62,7 @@ void PfspInstance::allowMatrixMemory(int nbJ, int nbM)
 long int PfspInstance::getTime(int job, int machine) const
 {
     if ((job < 0) || (job >= nbJob) || (machine < 0) || (machine >= nbMac)) {
-      std::cout    << "ERROR. file:pfspInstance.cpp, method:getTime. Out of bound. job=" << job
+      std::cerr    << "ERROR. file:pfspInstance.cpp, method:getTime. Out of bound. job=" << job
           << ", machine=" << machine << std::endl;
     }
 
@@ -73,7 +73,7 @@ long int PfspInstance::getTime(int job, int machine) const
 long int PfspInstance::getDueDate(int job) const
 {
     if ((job < 0) || (job >= nbJob)) {
-      std::cout    << "ERROR. file:pfspInstance.cpp, method:getDueDate. Out of bound. job=" << job << std::endl;
+      std::cerr    << "ERROR. file:pfspInstance.cpp, method:getDueDate. Out of bound. job=" << job << std::endl;
     }
 
     return dueDates[job];
@@ -82,7 +82,7 @@ long int PfspInstance::getDueDate(int job) const
 long int PfspInstance::getPriority(int job) const
 {
     if ((job < 0) || (job >= nbJob)) {
-      std::cout    << "ERROR. file:pfspInstance.cpp, method:getPriority. Out of bound. job=" << job << std::endl;
+      std::cerr    << "ERROR. file:pfspInstance.cpp, method:getPriority. Out of bound. job=" << job << std::endl;
     }
 
     return priority[job];
@@ -108,22 +108,22 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 	strcat(fileNameOK, aux2);
 
-	std::cout << "name : " << fileNameOK << std::endl;
-	std::cout << "file : " << fileName << std::endl;
+	std::cerr << "name : " << fileNameOK << std::endl;
+	std::cerr << "file : " << fileName << std::endl;
 
 	fileIn.open(fileName);
 
 	if (fileIn.is_open()) {
-        std::cout << "File " << fileName << " is now open, start to read..." << std::endl;
+        std::cerr << "File " << fileName << " is now open, start to read..." << std::endl;
 
 		fileIn >> nbJob;
-        std::cout << "Number of jobs : " << nbJob << std::endl;
+        std::cerr << "Number of jobs : " << nbJob << std::endl;
 		fileIn >> nbMac;
-        std::cout << "Number of machines : " << nbMac << std::endl;
-        std::cout << "Allow memory for the matrix..." << std::endl;
+        std::cerr << "Number of machines : " << nbMac << std::endl;
+        std::cerr << "Allow memory for the matrix..." << std::endl;
 		allowMatrixMemory(nbJob, nbMac);
-        std::cout << "Memory allowed." << std::endl;
-        std::cout << "Start to read matrix..." << std::endl;
+        std::cerr << "Memory allowed." << std::endl;
+        std::cerr << "Start to read matrix..." << std::endl;
 
 		for (j = 0; j < nbJob; ++j)
 		{
@@ -147,12 +147,12 @@ bool PfspInstance::readDataFromFile(char * fileName)
             priority[j] = readValue;
 		}
 
-        std::cout << "All is read from file." << std::endl;
+        std::cerr << "All is read from file." << std::endl;
 		fileIn.close();
 	}
 	else
 	{
-		std::cout    << "ERROR. file:pfspInstance.cpp, method:readDataFromFile, "
+		std::cerr    << "ERROR. file:pfspInstance.cpp, method:readDataFromFile, "
 				<< "error while opening file " << fileName << std::endl;
 
 		everythingOK = false;

@@ -1,4 +1,6 @@
-CXXFLAGS = -Wall -Wextra -Werror -std=c++17 -g
+CXXFLAGS = -Wall -Wextra -Werror -std=c++17
+CXXFLAGS := -floop-interchange -floop-strip-mine -floop-block -floop-parallelize-all -ftree-parallelize-loops=4 -Ofast
+# CXXFLAGS := -g
 
 SRC := $(wildcard *.cpp)
 HEAD := $(wildcard *.hpp)
