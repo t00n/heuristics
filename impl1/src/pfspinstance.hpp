@@ -23,6 +23,7 @@
 #define __PFSPINSTANCE_HPP
 
 #include <vector>
+#include "pfspsolution.hpp"
 
 class PfspInstance{
 private:
@@ -58,7 +59,7 @@ public:
     /* Read Data from a file : */
     bool readDataFromFile(char * fileName);
 
-    long int computeScore(std::vector<int>& sol) const;
+    long int computeScore(const PfspSolution& sol) const;
 };
 
 #endif

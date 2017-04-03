@@ -163,7 +163,7 @@ bool PfspInstance::readDataFromFile(char * fileName)
 
 
 /* Compute the weighted tardiness of a given solution */
-long int PfspInstance::computeScore(std::vector<int> & sol) const
+long int PfspInstance::computeScore(const PfspSolution& sol) const
 {
 	size_t j;
     int m;

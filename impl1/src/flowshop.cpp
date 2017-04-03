@@ -83,32 +83,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    PfspSolution solution;
-
-    if (init == InitType::RANDOM) {
-        /* Fill the vector with a random permutation */
-        randomPermutation(instance, solution);
-    }
-    else {
-        simplifiedRZ(instance, solution);
-    }
-
-    if (improvement == ImprovementType::FIRST) {
-
-    }
-    else {
-
-    }
-
-    if (neighbourhood == NeighbourhoodType::TRANSPOSE) {
-
-    }
-    else if (neighbourhood == NeighbourhoodType::EXCHANGE) {
-
-    }
-    else {
-
-    }
+    IterativeImprovement algo(instance, init, improvement, neighbourhood);
+    algo.solve();
+    PfspSolution solution = algo.getSolution();
 
     std::cout << "Solution: " ;
     printSolution(solution);

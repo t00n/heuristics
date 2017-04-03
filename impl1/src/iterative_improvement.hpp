@@ -1,6 +1,10 @@
 #ifndef __ITERATIVE_IMPROVEMENT_HPP
 #define __ITERATIVE_IMPROVEMENT_HPP
 
+#include <functional>
+#include <vector>
+#include <experimental/optional>
+
 #include "pfspinstance.hpp"
 #include "pfspsolution.hpp"
 
@@ -24,9 +28,18 @@ enum NeighbourhoodType {
 class IterativeImprovement
 {
 private:
+	PfspInstance instance;
+	PfspSolution solution;
+	std::function<void(const PfspInstance & instance, PfspSolution&)> initFunction;
+	std::function<std::experimental::optional<PfspSolution>(const PfspInstance&, const PfspSolution&, const std::vector<PfspSolution>&)> improvementFunction;
+	std::function<std::vector<PfspSolution>(const PfspSolution&)> neighbourhoodFunction;
 
 public:
-	IterativeImprovement(const PfspInstance & instance, PfspSolution & sol, InitType init, ImprovementType impvmnt, NeighbourhoodType neighbourhood);
+	IterativeImprovement(const PfspInstance & instance, InitType init, ImprovementType impvmnt, NeighbourhoodType neighbourhood);
+
+	void solve();
+
+	PfspSolution getSolution();
 };
 
 #endif // __ITERATIVE_IMPROVEMENT_HPP
