@@ -111,13 +111,14 @@ void IterativeImprovement::solve()
 {
 	initFunction(this->instance, this->solution);
 	bool has_improved = false;
+	std::cerr << "Initial :" << this->instance.computeScore(this->solution) << std::endl;
 	do {
 		auto neighbourhood = neighbourhoodFunction(this->solution);
 		auto improvement = improvementFunction(this->instance, this->solution, neighbourhood);
 		if (improvement) {
 			has_improved = true;
 			this->solution = improvement.value();
-			// printSolution(this->solution);
+			std::cerr << "Improvement :" << this->instance.computeScore(this->solution) << std::endl;
 		}
 		else {
 			has_improved = false;

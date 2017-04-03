@@ -35,7 +35,7 @@ void simplifiedRZ(const PfspInstance & instance, PfspSolution & sol)
 	      	      }
 	      	      weightA /= instance.getPriority(a);
 	      	      weightB /= instance.getPriority(b);
-	      	      return weightA < weightB;
+	      	      return weightA <= weightB;
 		      });
 	// add each job in the position that minimizes the score of the partial solution
 	for (auto job : ordered_by_process_time)
