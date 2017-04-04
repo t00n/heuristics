@@ -22,7 +22,7 @@ In this project, we implement iterative improvement algorithms for the permutati
 
 In the first exercise, we implement 12 algorithms using combinations of 2 initialization methods, 2 pivoting rules and 3 neighbourhood types. The 2 initialization types are a random solution and a simplified RZ heuristic. To avoid bias in the first, we always set the random seed arbitrarely to 42. The 2 pivoting rules are \textbf{first-improvement} and best-improvement. The 3 neighbourhood types are the transpose, exchange and insert neighbourhoods. \\
 
-In the second exercise, we implement a Variable Neighbourhood Descent. We use the random initialization method and the \textbf{first-improvement} pivoting rule and 2 orderings for the variable neighbourhood : transpose, exchange, insert and transpose, insert, exchange. \\
+In the second exercise, we implement a Variable Neighbourhood Descent (VND). We use the random initialization method and the \textbf{first-improvement} pivoting rule and 2 orderings for the variable neighbourhood : transpose-exchange-insert and \textbf{transpose-insert-exchange}. \\
 
 For both exercises, we compare the weighted sum completion time of the solution and the running time of the program in order to find the best algorithm to use for this problem. We also compare these metrics between the variable neighbourhoods and the single neighbourhoods. \\
 
@@ -107,22 +107,22 @@ Below are the running times and percentage deviation from the best known solutio
 \end{figure}
 
 
-The next table shows the percentage improvement of VND compared to single neighbourhoods. The percentage improvement is defined as the quotient of the percentage deviation of the neighbourhood in the rows on the percentage deviation of the neighbourhood in the columns.
+The next table shows the percentage improvement of \textbf{VND} compared to single neighbourhoods. The percentage improvement is defined as the quotient of the percentage deviation of the neighbourhood in the rows on the percentage deviation of the neighbourhood in the columns.
 \begin{figure}[H]
 	\centering
-	\caption{Percentage improvement of VND heuristics compared to single neighbourhoods}
+	\caption{Percentage improvement of \textbf{VND} heuristics compared to single neighbourhoods}
 	\includegraphics{img/exercise2_avg_percentage_improvement.png}
 \end{figure}
 
 \subsection{Comparison}
 
-In the following table we show the results of a Student t-test between the percentage deviation of the two orderings of the VND and of the 3 single neighbourhoods. The initialization method is always random and the pivoting rule is \textbf{first-improvement}. We can reject the null hypothesis for every comparison. We see that the \textbf{transpose-exchange-insert} ordering of the VND is better than the insert and the transpose neighbourhoods and wore than the exchange neighbourhood. The results are similar for the transpose-insert-exchange VND. When we compare the two orderings of the VND we observe that the \textbf{transpose-exchange-insert} ordering is slightly better. \\
+In the following table we show the results of a Student t-test between the percentage deviation of the two orderings of the \textbf{VND} and of the 3 single neighbourhoods. The initialization method is always random and the pivoting rule is \textbf{first-improvement}. We can reject the null hypothesis for every comparison. We see that the \textbf{transpose-exchange-insert} ordering of the \textbf{VND} is better than the insert and the transpose neighbourhoods and wore than the exchange neighbourhood. The results are similar for the \textbf{transpose-insert-exchange} \textbf{VND}. When we compare the two orderings of the \textbf{VND} we observe that the \textbf{transpose-exchange-insert} ordering is slightly better. \\
 
-In regard of the fact that the exchange neighbourhood reaches better results than the two VND we ran, we can suppose that a VND ordering beginning by the exchange neighbourhood would be the best. Looking at the results of \ref{fig:exercise1_student} (f) we see that the insert neighbourhood obtains better results than the transpose neighbourhood. The best ordering could then be \textbf{exchange-insert-transpose}.
+In regard of the fact that the exchange neighbourhood reaches better results than the two \textbf{VND} we ran, we can suppose that a \textbf{VND} ordering beginning by the exchange neighbourhood would be the best. Looking at the results of \ref{fig:exercise1_student} (f) we see that the insert neighbourhood obtains better results than the transpose neighbourhood. The best ordering could then be \textbf{exchange-insert-transpose}.
 
 \begin{figure}[H]
 	\centering
-	\caption{Results of the Student t-test comparing percentage deviation of VND heuristics to single neighbourhoods}
+	\caption{Results of the Student t-test comparing percentage deviation of \textbf{VND} heuristics to single neighbourhoods}
 	\includegraphics{img/exercise2_student_percentage_deviation.png}
 \end{figure}
 
