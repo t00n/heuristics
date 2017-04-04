@@ -43,9 +43,12 @@ Below are the running times and percentage deviation from the best known solutio
 
 \subsection{Comparison}
 
+To compare the several algorithms, we perform a Student t-test on the percentage deviation and the running time for each algorithm and for all instances with the null hypothesis that their average value are equal and with a confidence interval of 95\%. When the p-value is smaller than or equal to 0.05 we reject the hypothesis that the average values are equal. We then look at the sign of the t-statistic to know which average value is greater than the other one.
+
 \begin{figure}[H]
 	\centering
 	\caption{Results of the Student t-test for exercise 1}
+	\label{fig:exercise1_student}
 	\subfigure[Comparison by initialization method (random/srz)]{
 		\includegraphics[width=.25\textwidth]{img/exercise1_student_init.png}
 	}
@@ -76,6 +79,8 @@ Below are the running times and percentage deviation from the best known solutio
 \end{figure} 
 
 \paragraph{Which initial solution is preferable?}
+
+We can see in \ref{fig:exercise1_student} (a)
 
 \paragraph{Which pivoting rule generates better quality solutions and which is faster?}
 
