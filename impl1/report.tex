@@ -107,7 +107,7 @@ Below are the running times and percentage deviation from the best known solutio
 \end{figure}
 
 
-This figure shows the percentage improvement of VND compared to single neighbourhoods. The percentage improvement is defined as the quotient of the percentage deviation of the neighbourhood in the columns on the percentage deviation of the neighbourhood in the rows.
+The next table shows the percentage improvement of VND compared to single neighbourhoods. The percentage improvement is defined as the quotient of the percentage deviation of the neighbourhood in the columns on the percentage deviation of the neighbourhood in the rows.
 \begin{figure}[H]
 	\centering
 	\caption{Percentage improvement of VND heuristics compared to single neighbourhoods}
@@ -116,13 +116,13 @@ This figure shows the percentage improvement of VND compared to single neighbour
 
 \subsection{Comparison}
 
+In the following table we show the results of a Student t-test between the percentage deviation of the two orderings of the VND and of the 3 single neighbourhoods. The initialization method is always random and the pivoting rule is first-improvement. We can reject the null hypothesis for every comparison. We see that the transpose-exchange-insert ordering of the VND is better than the insert and the transpose neighbourhoods and wore than the exchange neighbourhood. The results are similar for the transpose-insert-exchange VND.
+
 \begin{figure}[H]
 	\centering
 	\caption{Results of the Student t-test comparing percentage deviation of VND heuristics to single neighbourhoods}
 	\includegraphics{img/exercise2_student_percentage_deviation.png}
 \end{figure}
-
-\subsection{Discussion}
 
 \end{document}
 
