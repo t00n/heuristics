@@ -1,0 +1,54 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[american]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[left=2.5cm,top=2cm,right=2.5cm,nohead,nofoot]{geometry}
+\usepackage{url}
+\usepackage{listings}
+
+\title{Heuristic Optimisation\\Implementation 1}
+\author{Antoine Carpentier}
+
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+In this project, we implement iterative improvement algorithms for the permutation flow-shop scheduling problem with weighted sum completion time objective. \\
+
+In the first exercise, we implement 12 algorithms using combinations of 2 initialization methods, 2 pivoting rules and 3 neighbourhood types. \\
+The 2 initialization types are a random solution and a simplified RZ heuristic. To avoid bias in the first, we always set the random seed arbitrarely to 42. \\
+The 2 pivoting rules are first-improvement and best-improvement. \\
+The 3 neighbourhood types are the transpose, exchange and insert neighbourhoods. \\
+
+In the second exercise, we implement a Variable Neighbourhood Descent. We use the random initialization method and the first-improvement pivoting rule and 2 orderings for the variable neighbourhood : transpose, exchange, insert and transpose, insert, exchange. \\
+
+For both exercises, we compare the weighted sum completion time of the solution and the running time of the program in order to find the best algorithm to use for this problem. \\
+
+We also compare these metrics between the variable neighbourhoods and the single neighbourhoods. \\
+
+Our implementation is in C++17 and can be find in the \textbf{src} directory.
+
+\section{Exercise 1.1}
+
+\subsection{Statistics}
+
+\subsection{Questions}
+
+\paragraph{Which initial solution is preferable?}
+
+\paragraph{Which pivoting rule generates better quality solutions and which is faster?}
+
+\paragraph{Which neighborhood generates better quality solution and what computation time is required to reach local optima?}
+
+\section{Exercise 1.2}
+
+\subsection{Statistics}
+
+\subsection{Comparison}
+
+\subsection{Discussion}
+
+\end{document}
+
