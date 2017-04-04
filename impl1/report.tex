@@ -20,7 +20,7 @@
 
 In this project, we implement iterative improvement algorithms for the permutation flow-shop scheduling problem with weighted sum completion time objective. \\
 
-In the first exercise, we implement 12 algorithms using combinations of 2 initialization methods, 2 pivoting rules and 3 neighbourhood types. The 2 initialization types are a random solution and a simplified RZ heuristic. To avoid bias in the first, we always set the random seed arbitrarely to 42. The 2 pivoting rules are \textbf{first-improvement} and best-improvement. The 3 neighbourhood types are the transpose, exchange and insert neighbourhoods. \\
+In the first exercise, we implement 12 algorithms using combinations of 2 initialization methods, 2 pivoting rules and 3 neighbourhood types. The 2 initialization types are a random solution and a simplified RZ heuristic. To avoid bias in the first, we always set the random seed arbitrarely to 42. The 2 pivoting rules are \textbf{first-improvement} and \textbf{best-improvement}. The 3 neighbourhood types are the transpose, exchange and insert neighbourhoods. \\
 
 In the second exercise, we implement a Variable Neighbourhood Descent (VND). We use the random initialization method and the \textbf{first-improvement} pivoting rule and 2 orderings for the variable neighbourhood : transpose-exchange-insert and \textbf{transpose-insert-exchange}. \\
 
@@ -86,11 +86,11 @@ We can see in \ref{fig:exercise1_student} (a) that for every algorithm the rando
 
 In \ref{fig:exercise1_student} (b) we observe that we can reject the null hypothesis for every algorithm except the simplified RZ with exchange and transpose neighbourhoods. In the former cases, the t-statistic is positive so the \textbf{first-improvement} pivoting rule gives the best results. We cannot conclude anything for the the two latter cases. \\
 
-Concerning the running time of each algorithm we can see in \ref{fig:exercise1_student} (c) that the best-improvement is often faster except for the transpose neighbourhood where we cannot reject the null hypothesis. This can be explained by the fact that the best-improvement algorithm will converge faster to a local optimum because it always jumps to the best solution in the neighbourhood.
+Concerning the running time of each algorithm we can see in \ref{fig:exercise1_student} (c) that the \textbf{best-improvement} is often faster except for the transpose neighbourhood where we cannot reject the null hypothesis. This can be explained by the fact that the \textbf{best-improvement} algorithm will converge faster to a local optimum because it always jumps to the best solution in the neighbourhood.
 
 \paragraph{Which neighborhood generates better quality solution and what computation time is required to reach local optima?}
 
-In \ref{fig:exercise1_student} (d) (e) (f) we perform a Student t-test between each of the 3 neighbourhood types. We observe that we can reject the null hypothesis in every case except when the simplified RZ best-improvement exchange algorithm is compared with the insert algorithm. We can see in \ref{fig:exercise1_student} (d) that the exchange neighbourhood is better than the insert neighbourhood when used with a random initialization method and in \ref{fig:exercise1_student} (e) always better than the transpose neighbourhood. We conclude that the exchange neighbourhood might give the best results.
+In \ref{fig:exercise1_student} (d) (e) (f) we perform a Student t-test between each of the 3 neighbourhood types. We observe that we can reject the null hypothesis in every case except when the simplified RZ \textbf{best-improvement} exchange algorithm is compared with the insert algorithm. We can see in \ref{fig:exercise1_student} (d) that the exchange neighbourhood is better than the insert neighbourhood when used with a random initialization method and in \ref{fig:exercise1_student} (e) always better than the transpose neighbourhood. We conclude that the exchange neighbourhood might give the best results.
 
 The last 3 tables of \ref{fig:exercise1_student} show the results for the running times. In \ref{fig:exercise1_student} (g) we see that we cannot reject the null hypothesis which means that the running times of the exchange and insert neighbourhood might be equal. In \ref{fig:exercise1_student} (h) (i) we see that we can reject the null hypothesis and that the transpose neighbourhood is always faster than the two others.
 
