@@ -84,11 +84,13 @@ We can see in \ref{fig:exercise1_student} (a) that for every algorithm the rando
 
 \paragraph{Which pivoting rule generates better quality solutions and which is faster?}
 
-In \ref{fig:exercise1_student} (b) we observe that we can reject the null hypothesis for every algorithm except the simplified RZ with exchange and transpose neighbourhoods. In the former cases, the t-statistic is positive so the first-improvement pivoting rule is the best. We cannot conclude anything for the the two latter cases. \\
+In \ref{fig:exercise1_student} (b) we observe that we can reject the null hypothesis for every algorithm except the simplified RZ with exchange and transpose neighbourhoods. In the former cases, the t-statistic is positive so the first-improvement pivoting rule gives the best results. We cannot conclude anything for the the two latter cases. \\
 
 Concerning the running time of each algorithm we can see in \ref{fig:exercise1_student} (c) that the best-improvement is often faster except for the transpose neighbourhood where we cannot reject the null hypothesis. This can be explained by the fact that the best-improvement algorithm will converge faster to a local optimum because it always jumps to the best solution in the neighbourhood.
 
 \paragraph{Which neighborhood generates better quality solution and what computation time is required to reach local optima?}
+
+In \ref{fig:exercise1_student} (d) (e) (f) we perform a Student t-test between each of the 3 neighbourhood types. We observe that we can reject the null hypothesis in every case except when the simplified RZ best-improvement exchange algorithm is compared with the insert algorithm. We can see in \ref{fig:exercise1_student} (d) that the exchange neighbourhood is better than the insert neighbourhood when used with a random initialization method and always better than the transpose neighbourhood.
 
 \section{Exercise 1.2}
 
