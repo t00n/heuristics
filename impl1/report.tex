@@ -4,6 +4,9 @@
 \usepackage[left=2.5cm,top=2cm,right=2.5cm,nohead,nofoot]{geometry}
 \usepackage{url}
 \usepackage{listings}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{float}
 
 \title{Heuristic Optimisation\\Implementation 1}
 \author{Antoine Carpentier}
@@ -28,13 +31,54 @@ For both exercises, we compare the weighted sum completion time of the solution 
 
 We also compare these metrics between the variable neighbourhoods and the single neighbourhoods. \\
 
-Our implementation is in C++17 and can be find in the \textbf{src} directory.
+Our implementation is in C++17 and can be found in the \textbf{src} directory.
+
+Results were extracted and computed with Python 3, Jupyter Notebook and Pandas.
 
 \section{Exercise 1.1}
 
 \subsection{Statistics}
 
+\begin{figure}[H]
+	\centering
+	\caption{Statistics of exercise 1}
+	\includegraphics[width=.8\textwidth]{img/exercise1_statistics.png}
+\end{figure}
+
+
 \subsection{Questions}
+
+\begin{figure}[H]
+	\centering
+	\caption{Results of the Student t-test for exercise 1}
+	\subfigure[Comparison by initialization method (random/srz)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_init.png}
+	}
+	\subfigure[Comparison by pivoting rule on the percentage deviation (best/first)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_pivot_score.png}
+	}
+	\subfigure[Comparison by pivoting rule on the running time (best/first)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_pivot_time.png}
+	}
+	\subfigure[Comparison by neighbourhood type on the percentage deviation (exchange/insert)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_neigh_ei_score.png}
+	}
+	\subfigure[Comparison by neighbourhood type on the percentage deviation (exchange/transpose)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_neigh_et_score.png}
+	}
+	\subfigure[Comparison by neighbourhood type on the percentage deviation (insert/transpose)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_neigh_it_score.png}
+	}
+	\subfigure[Comparison by neighbourhood type on the running time (exchange/insert)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_neigh_ei_time.png}
+	}
+	\subfigure[Comparison by neighbourhood type on the running time (exchange/transpose)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_neigh_et_time.png}
+	}
+	\subfigure[Comparison by neighbourhood type on the running time (insert/transpose)]{
+		\includegraphics[width=.25\textwidth]{img/exercise1_student_neigh_it_time.png}
+	}
+\end{figure} 
 
 \paragraph{Which initial solution is preferable?}
 
@@ -45,6 +89,12 @@ Our implementation is in C++17 and can be find in the \textbf{src} directory.
 \section{Exercise 1.2}
 
 \subsection{Statistics}
+
+\begin{figure}[H]
+	\centering
+	\caption{Statistics of exercise 2}
+	\includegraphics[width=.4\textwidth]{img/exercise2_statistics.png}
+\end{figure}
 
 \subsection{Comparison}
 
