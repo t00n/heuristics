@@ -27,6 +27,15 @@
 
 
 
+void display_usage(char* name)
+{
+    std::cout << "Usage: " << name << " <instance_file> <options>" << std::endl;
+    std::cout << "where <options> are --first --best (choose one)" << std::endl;
+    std::cout << "                    --transpose --exchange --insert --tie --tei (choose one)" << std::endl;
+    std::cout << "                    --random-init --srz (choose one)" << std::endl;
+    std::cout << "                    -h --help (this help)" << std::endl;
+}
+
 /***********************************************************************/
 
 int main(int argc, char *argv[])
@@ -34,13 +43,9 @@ int main(int argc, char *argv[])
     long int totalWeightedTardiness;
 
 
-    if (argc < 2)
+    if (argc < 2 or strcmp(argv[1], "-h") == 0 or strcmp(argv[1], "--help") == 0)
     {
-        std::cout << "Usage: " << argv[0] << " <instance_file> <options>" << std::endl;
-        std::cout << "where <options> are --first --best" << std::endl;
-        std::cout << "                    --transpose --exchange --insert" << std::endl;
-        std::cout << "                    --random-init --srz" << std::endl;
-        std::cout << "                    --tie --tei" << std::endl;
+        display_usage(argv[0]);
         return 0;
     }
     ImprovementType improvement = ImprovementType::FIRST;
