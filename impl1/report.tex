@@ -90,7 +90,9 @@ Concerning the running time of each algorithm we can see in \ref{fig:exercise1_s
 
 \paragraph{Which neighborhood generates better quality solution and what computation time is required to reach local optima?}
 
-In \ref{fig:exercise1_student} (d) (e) (f) we perform a Student t-test between each of the 3 neighbourhood types. We observe that we can reject the null hypothesis in every case except when the simplified RZ best-improvement exchange algorithm is compared with the insert algorithm. We can see in \ref{fig:exercise1_student} (d) that the exchange neighbourhood is better than the insert neighbourhood when used with a random initialization method and always better than the transpose neighbourhood.
+In \ref{fig:exercise1_student} (d) (e) (f) we perform a Student t-test between each of the 3 neighbourhood types. We observe that we can reject the null hypothesis in every case except when the simplified RZ best-improvement exchange algorithm is compared with the insert algorithm. We can see in \ref{fig:exercise1_student} (d) that the exchange neighbourhood is better than the insert neighbourhood when used with a random initialization method and in \ref{fig:exercise1_student} (e) always better than the transpose neighbourhood. We conclude that the exchange neighbourhood might give the best results.
+
+The last 3 tables of \ref{fig:exercise1_student} show the results for the running times. In \ref{fig:exercise1_student} (g) we see that we cannot reject the null hypothesis which means that the running times of the exchange and insert neighbourhood might be equal. In \ref{fig:exercise1_student} (h) (i) we see that we can reject the null hypothesis and that the transpose neighbourhood is always faster than the two others.
 
 \section{Exercise 1.2}
 
