@@ -10,6 +10,12 @@ void orderedSolution(const PfspInstance & instance, PfspSolution & sol)
 	}
 }
 
+void insert(PfspSolution & solution, size_t i, size_t j) {
+	unsigned int job = solution[i];
+	solution.erase(solution.begin() + i);
+	solution.insert(solution.begin() + j, job);
+}
+
 void initLR(const PfspInstance &instance, PfspSolution& solution, unsigned int x) {
 	PfspSolution ordered_by_process_time;
 	orderedSolution(instance, ordered_by_process_time);
@@ -29,20 +35,43 @@ void initLR(const PfspInstance &instance, PfspSolution& solution, unsigned int x
 	double best_score = std::numeric_limits<double>::infinity();
 	PfspSolution best_solution;
 	for (size_t i = 0; i < x; ++i) {
-		unsigned int job = ordered_by_process_time[i];
-		ordered_by_process_time.erase(ordered_by_process_time.begin() + i);
-		ordered_by_process_time.insert(ordered_by_process_time.begin(), job);
+		insert(ordered_by_process_time, i, 0);
 		unsigned int score = instance.computeScore(ordered_by_process_time);
 		if (score < best_score) {
 			best_score = score;
 			best_solution = ordered_by_process_time;
 		}
-		ordered_by_process_time.erase(ordered_by_process_time.begin());
-		ordered_by_process_time.insert(ordered_by_process_time.begin() + i, job);
+		insert(ordered_by_process_time, 0, i);
 	}
 	solution = best_solution;
 }
 
+void RZ(const PfspInstance & instance, PfspSolution& solution) {
+	double best_score = std::numeric_limits<double>::infinity();
+	PfspSolution best_solution;
+	for (size_t i = 0; i < solution.size(); ++i) {
+		for (size_t j = 0; j < solution.size(); ++j) {
+			insert(solution, i, j);
+			double score = instance.computeScore(solution);
+			if (score < best_score) {
+				best_solution = solution;
+				best_score = score;
+			}
+			insert(solution, j, i);
+		}
+	}
+	solution = best_solution;
+}
+
+void iRZ(const PfspInstance & instance, PfspSolution& solution) {
+	PfspSolution old_solution;
+	do {
+		old_solution = solution;
+		RZ(instance, solution);
+	} while (old_solution != solution);
+}
+
 void IteratedGreedy::solve() {
 	initLR(this->instance, this->solution, this->instance.getNbJob() / this->instance.getNbMac());
+	iRZ(this->instance, this->solution);
 }
