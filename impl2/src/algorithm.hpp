@@ -20,4 +20,19 @@ class Algorithm {
 		PfspSolution getSolution();
 };
 
+
+void orderedSolution(const PfspInstance & instance, PfspSolution & sol);
+
+void insert(PfspSolution & solution, size_t i, size_t j);
+
+PfspSolution initLR(const PfspInstance &instance, unsigned int x);
+
+PfspSolution RZ(const PfspInstance & instance, const PfspSolution& solution);
+
+PfspSolution iRZ(const PfspInstance & instance, const PfspSolution& solution);
+
+PfspSolution destruction_construction(const PfspInstance & instance, const PfspSolution & solution, unsigned int d);
+
+int computeTemperature(int lambda, const PfspInstance & instance);
+
 #endif // __ALGORITHM_HPP

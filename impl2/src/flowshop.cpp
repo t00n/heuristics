@@ -25,13 +25,14 @@
 #include "pfspsolution.hpp"
 #include "iterated_greedy.hpp"
 #include "algorithm.hpp"
+#include "genetic.hpp"
 
 
 
 void display_usage(char* name)
 {
     std::cout << "Usage: " << name << " <instance_file> <options>" << std::endl;
-    std::cout << "where <options> are --ig --other (choose one)" << std::endl;
+    std::cout << "where <options> are --ig --genetic (choose one)" << std::endl;
     std::cout << "                    --timeout <time>" << std::endl;
 }
 
@@ -40,7 +41,7 @@ void display_usage(char* name)
 
 enum AlgoType {
     IG = 0,
-    OTHER = 1
+    GENETIC = 1
 };
 
 int main(int argc, char *argv[])
@@ -50,25 +51,6 @@ int main(int argc, char *argv[])
         display_usage(argv[0]);
         return 0;
     }
-    AlgoType type = AlgoType::IG;
-    std::clock_t timeout = 10; 
-    for (int i = 2; i < argc; ++i) {
-        if (strcmp(argv[i], "--ig") == 0) {
-            type = AlgoType::IG;
-        }
-        else if (strcmp(argv[i], "--other") == 0) {
-            type = AlgoType::OTHER;
-        }
-        else if (strcmp(argv[i], "--timeout") == 0) {
-            timeout = std::stoi(argv[++i]);
-        }
-        else {
-            std::cerr << "Argument not recognized " << argv[i] << std::endl;
-        }
-    }
-
-    /* initialize random seed: */
-    srand(42);
 
     /* Create instance object */
     PfspInstance instance;
@@ -78,13 +60,35 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    AlgoType type = AlgoType::IG;
+    std::clock_t timeout = instance.getNbJob() * 5;
+    std::cerr << "Timeout: " << timeout << std::endl;
+    for (int i = 2; i < argc; ++i) {
+        if (strcmp(argv[i], "--ig") == 0) {
+            type = AlgoType::IG;
+        }
+        else if (strcmp(argv[i], "--genetic") == 0) {
+            type = AlgoType::GENETIC;
+        }
+        else if (strcmp(argv[i], "--timeout") == 0) {
+            timeout = std::stoi(argv[++i]);
+        }
+        else {
+            std::cerr << "Argument not recognized " << argv[i] << std::endl;
+        }
+    }
+    std::cerr << "Algorithm: " << type << std::endl;
+
+    /* initialize random seed: */
+    srand(42);
+
     PfspSolution solution;
     Algorithm * algo;
     if (type == AlgoType::IG) {
         algo = new IteratedGreedy(instance, timeout);
     }
-    else if (type == AlgoType::OTHER) {
-
+    else if (type == AlgoType::GENETIC) {
+        algo = new Genetic(instance, timeout);
     }
     algo->solve();
     solution = algo->getSolution();
