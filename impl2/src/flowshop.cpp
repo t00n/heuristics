@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     }
 
     AlgoType type = AlgoType::IG;
-    std::clock_t timeout = instance.getNbJob() * 5;
+    std::clock_t timeout = instance.getNbJob();
     std::cerr << "Timeout: " << timeout << std::endl;
     for (int i = 2; i < argc; ++i) {
         if (strcmp(argv[i], "--ig") == 0) {
