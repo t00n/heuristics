@@ -67,13 +67,13 @@ PfspSolution RZ(const PfspInstance & instance, const PfspSolution& solution) {
 }
 
 PfspSolution iRZ(const PfspInstance & instance, const PfspSolution& solution) {
-	PfspSolution old_solution = solution;
-	PfspSolution new_solution;
+	PfspSolution old_solution;
+	PfspSolution new_solution = solution;
 	do {
-		new_solution = RZ(instance, old_solution);
 		old_solution = new_solution;
+		new_solution = RZ(instance, old_solution);
 	} while (new_solution != old_solution);
-	return solution;
+	return new_solution;
 }
 
 PfspSolution destruction_construction(const PfspInstance & instance, const PfspSolution & solution, unsigned int d) {
@@ -122,11 +122,13 @@ void IteratedGreedy::solve() {
 	this->solution = iRZ(this->instance, this->solution);
 	auto initial_solution = this->solution;
 	auto best_solution = initial_solution;
-	auto temperature = computeTemperature(5, this->instance);
+	auto lambda = 2;
+	auto d = 8;
+	auto temperature = computeTemperature(lambda, this->instance);
 	std::mt19937 gen(42);
 	std::uniform_real_distribution<> dis(0, 1);
 	do {
-		auto solution1 = destruction_construction(this->instance, initial_solution, 5);
+		auto solution1 = destruction_construction(this->instance, initial_solution, d);
 		auto solution2 = iRZ(this->instance, solution1);
 		if (instance.computeScore(solution2) < instance.computeScore(initial_solution)) {
 			initial_solution = solution2;
