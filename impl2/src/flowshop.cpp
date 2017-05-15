@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <cstring>
+#include <ctime>
 #include "pfspinstance.hpp"
 #include "pfspsolution.hpp"
 #include "iterated_greedy.hpp"
@@ -31,6 +32,7 @@ void display_usage(char* name)
 {
     std::cout << "Usage: " << name << " <instance_file> <options>" << std::endl;
     std::cout << "where <options> are --ig --other (choose one)" << std::endl;
+    std::cout << "                    --timeout <time>" << std::endl;
 }
 
 /***********************************************************************/
@@ -49,12 +51,16 @@ int main(int argc, char *argv[])
         return 0;
     }
     AlgoType type = AlgoType::IG;
+    std::clock_t timeout = 10; 
     for (int i = 2; i < argc; ++i) {
         if (strcmp(argv[i], "--ig") == 0) {
             type = AlgoType::IG;
         }
         else if (strcmp(argv[i], "--other") == 0) {
             type = AlgoType::OTHER;
+        }
+        else if (strcmp(argv[i], "--timeout") == 0) {
+            timeout = std::stoi(argv[++i]);
         }
         else {
             std::cerr << "Argument not recognized " << argv[i] << std::endl;
@@ -75,7 +81,7 @@ int main(int argc, char *argv[])
     PfspSolution solution;
     Algorithm * algo;
     if (type == AlgoType::IG) {
-        algo = new IteratedGreedy(instance);
+        algo = new IteratedGreedy(instance, timeout);
     }
     else if (type == AlgoType::OTHER) {
 

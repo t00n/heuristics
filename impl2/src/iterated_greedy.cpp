@@ -1,7 +1,9 @@
 #include "iterated_greedy.hpp"
 
 #include <algorithm>
+#include <random>
 #include <limits>
+#include <cmath>
 
 void orderedSolution(const PfspInstance & instance, PfspSolution & sol)
 {
@@ -16,7 +18,7 @@ void insert(PfspSolution & solution, size_t i, size_t j) {
 	solution.insert(solution.begin() + j, job);
 }
 
-void initLR(const PfspInstance &instance, PfspSolution& solution, unsigned int x) {
+PfspSolution initLR(const PfspInstance &instance, unsigned int x) {
 	PfspSolution ordered_by_process_time;
 	orderedSolution(instance, ordered_by_process_time);
 	std::stable_sort(
@@ -43,35 +45,99 @@ void initLR(const PfspInstance &instance, PfspSolution& solution, unsigned int x
 		}
 		insert(ordered_by_process_time, 0, i);
 	}
-	solution = best_solution;
+	return best_solution;
 }
 
-void RZ(const PfspInstance & instance, PfspSolution& solution) {
+PfspSolution RZ(const PfspInstance & instance, const PfspSolution& solution) {
 	double best_score = std::numeric_limits<double>::infinity();
 	PfspSolution best_solution;
-	for (size_t i = 0; i < solution.size(); ++i) {
-		for (size_t j = 0; j < solution.size(); ++j) {
-			insert(solution, i, j);
-			double score = instance.computeScore(solution);
+	auto sol = solution;
+	for (size_t i = 0; i < sol.size(); ++i) {
+		for (size_t j = 0; j < sol.size(); ++j) {
+			insert(sol, i, j);
+			double score = instance.computeScore(sol);
 			if (score < best_score) {
-				best_solution = solution;
+				best_solution = sol;
 				best_score = score;
 			}
-			insert(solution, j, i);
+			insert(sol, j, i);
 		}
 	}
-	solution = best_solution;
+	return best_solution;
 }
 
-void iRZ(const PfspInstance & instance, PfspSolution& solution) {
-	PfspSolution old_solution;
+PfspSolution iRZ(const PfspInstance & instance, const PfspSolution& solution) {
+	PfspSolution old_solution = solution;
+	PfspSolution new_solution;
 	do {
-		old_solution = solution;
-		RZ(instance, solution);
-	} while (old_solution != solution);
+		new_solution = RZ(instance, old_solution);
+		old_solution = new_solution;
+	} while (new_solution != old_solution);
+	return solution;
+}
+
+PfspSolution destruction_construction(const PfspInstance & instance, const PfspSolution & solution, unsigned int d) {
+	// destruction
+	static std::mt19937 gen(42);
+	PfspSolution jobs;
+	PfspSolution new_solution = solution;
+	for (unsigned int i = 0; i < d; ++i) {
+    	std::uniform_int_distribution<> dis(0, new_solution.size() - 1);
+    	auto r = dis(gen);
+    	auto job = new_solution[r];
+    	new_solution.erase(new_solution.begin() + r);
+    	jobs.push_back(job);
+	}
+	// construction
+	for (auto job : jobs) {
+		PfspSolution best_solution;
+		auto best_score = std::numeric_limits<double>::infinity();
+		for (auto j = 0; j < new_solution.size(); ++j) {
+			 new_solution.insert(new_solution.begin() + j, job);
+			 auto score = instance.computeScore(new_solution);
+			 if (score < best_score) {
+			 	best_score = score;
+			 	best_solution = new_solution;
+			 }
+			 new_solution.erase(new_solution.begin() + j);
+		}
+		new_solution = best_solution;
+	}
+	return new_solution;
+}
+
+int computeTemperature(int lambda, const PfspInstance & instance) {
+	int res = 0;
+	for (size_t i = 0; i < instance.getNbJob(); ++i) {
+		for (size_t j = 0; j < instance.getNbMac(); ++j) {
+			res += instance.getTime(i, j);
+		}
+	}
+	return (lambda * res) / (10 * instance.getNbJob() * instance.getNbMac());
 }
 
 void IteratedGreedy::solve() {
-	initLR(this->instance, this->solution, this->instance.getNbJob() / this->instance.getNbMac());
-	iRZ(this->instance, this->solution);
+	auto t = clock();
+	this->solution = initLR(this->instance, this->instance.getNbJob() / this->instance.getNbMac());
+	this->solution = iRZ(this->instance, this->solution);
+	auto initial_solution = this->solution;
+	auto best_solution = initial_solution;
+	auto temperature = computeTemperature(5, this->instance);
+	std::mt19937 gen(42);
+	std::uniform_real_distribution<> dis(0, 1);
+	do {
+		auto solution1 = destruction_construction(this->instance, initial_solution, 5);
+		auto solution2 = iRZ(this->instance, solution1);
+		if (instance.computeScore(solution2) < instance.computeScore(initial_solution)) {
+			initial_solution = solution2;
+			if (instance.computeScore(solution2) < instance.computeScore(best_solution)) {
+				best_solution = solution2;
+			}
+		}
+		else if (dis(gen) < std::exp((instance.computeScore(initial_solution) - instance.computeScore(solution2)) / temperature)) {
+			initial_solution = solution2;
+		}
+	}
+	while (float(clock() - t) / CLOCKS_PER_SEC < this->timeout);
+	this->solution = best_solution;
 }
