@@ -22,7 +22,7 @@ void IteratedGreedy::solve() {
 			initial_solution = solution2;
 			if (instance.computeScore(solution2) < instance.computeScore(best_solution)) {
 				best_solution = solution2;
-				std::cerr << float(clock() - t) / CLOCKS_PER_SEC << ": " << instance.computeScore(best_solution) << std::endl;
+				std::cout << float(clock() - t) / CLOCKS_PER_SEC << ": " << instance.computeScore(best_solution) << std::endl;
 			}
 		}
 		else if (dis(gen) < std::exp((instance.computeScore(initial_solution) - instance.computeScore(solution2)) / temperature)) {
