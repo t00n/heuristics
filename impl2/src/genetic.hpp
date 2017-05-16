@@ -2,6 +2,9 @@
 #define __GENETIC_HPP
 
 #include "algorithm.hpp"
+#include "pfspsolution.hpp"
+
+typedef std::vector<PfspSolution> Population;
 
 class Genetic : public Algorithm {
 public:

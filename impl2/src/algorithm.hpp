@@ -20,6 +20,7 @@ class Algorithm {
 		PfspSolution getSolution();
 };
 
+PfspSolution randomSolution(const PfspInstance & instance);
 
 void orderedSolution(const PfspInstance & instance, PfspSolution & sol);
 

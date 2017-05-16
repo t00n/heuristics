@@ -13,6 +13,13 @@ PfspSolution Algorithm::getSolution() {
 	return this->solution;
 }
 
+PfspSolution randomSolution(const PfspInstance & instance) {
+	PfspSolution solution;
+	orderedSolution(instance, solution);
+	std::random_shuffle(solution.begin(), solution.end());
+	return solution;
+}
+
 void orderedSolution(const PfspInstance & instance, PfspSolution & sol)
 {
 	for (int i = 0; i < instance.getNbJob(); ++i) {
