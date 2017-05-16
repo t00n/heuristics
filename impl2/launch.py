@@ -17,9 +17,9 @@ def run(instance, algo, timeout=150):
         output = subprocess.check_output(command, shell=True, stderr=f)
     output = output.decode().split('\n')
     output = [x.strip() for x in output if x]
-    times = [(float(x[0].strip()), int(x[1].strip())) for x in [x.split(":") for x in output[:-2]]]
+    times = [(float(x[0].strip()), float(x[1].strip())) for x in [x.split(":") for x in output[:-2]]]
     solution = [int(x) for x in output[-2].split(" ")]
-    score = int(output[-1])
+    score = float(output[-1])
     return {
         'instance': instance,
         'algo': algo,
@@ -51,6 +51,18 @@ INSTANCES50 = glob.glob('instances/50*')
 INSTANCES100 = glob.glob('instances/100*')
 
 
+def recup_errors():
+    with open('results.json', 'r') as f:
+        data = json.load(f)
+    errors = [x for x in data if 'error' in data]
+    data = [x for x in data if 'error' not in data]
+    with Pool(None) as p:
+        for res in tqdm(p.imap_unordered(run_proxy, [x['args'] for x in errors])):
+            data.append(res)
+    with open('fixresults.json', 'w') as f:
+        json.dump(data, f)
+
+
 def run50():
     return [(i, 'ig', 30) for i in INSTANCES50] * 5 + [(i, 'genetic', 30) for i in INSTANCES50] * 5
 
@@ -59,7 +71,11 @@ def run100():
     return [(i, 'ig', 150) for i in INSTANCES100] * 5 + [(i, 'genetic', 150) for i in INSTANCES100] * 5
 
 if __name__ == '__main__':
-    jobs = run50() + run100()
-    with Pool(None) as p:
-        for res in tqdm(p.imap_unordered(run_proxy, jobs)):
-            save(res)
+    import sys
+    if sys.argv[1] == "error":
+        recup_errors()
+    else:
+        jobs = run50() + run100()
+        with Pool(None) as p:
+            for res in tqdm(p.imap_unordered(run_proxy, jobs)):
+                save(res)
