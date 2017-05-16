@@ -13,7 +13,8 @@ COMMAND = "./src/fssp {} {} --timeout {}"
 def run(instance, algo, timeout=150):
     a = '--genetic' if algo == 'genetic' else '--ig'
     command = COMMAND.format(instance, a, timeout)
-    output = subprocess.check_output(command, shell=True, stderr=subprocess.DEVNULL)
+    with open('LOLOLOL', 'a') as f:
+        output = subprocess.check_output(command, shell=True, stderr=f)
     output = output.decode().split('\n')
     output = [x.strip() for x in output if x]
     times = [(float(x[0].strip()), int(x[1].strip())) for x in [x.split(":") for x in output[:-2]]]

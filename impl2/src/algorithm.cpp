@@ -4,7 +4,6 @@
 #include <random>
 #include <limits>
 #include <set>
-#include <cassert>
 #include "ortho_arrays.hpp"
 
 Algorithm::Algorithm(const PfspInstance & instance, std::time_t timeout) {
@@ -177,7 +176,6 @@ void crossover_repair_child(PfspSolution & child, const PfspSolution & mother) {
 				*it = not_in_child[i];
 			}
 		}
-		assert(std::set<int>(child.begin(), child.end()).size() == 100); // assert that duplicates are gone
 	}
 }
 
