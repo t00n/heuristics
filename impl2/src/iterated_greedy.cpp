@@ -13,7 +13,7 @@ void IteratedGreedy::solve() {
 	auto lambda = 2;
 	auto d = 8;
 	auto temperature = computeTemperature(lambda, this->instance);
-	std::mt19937 gen(42);
+	std::mt19937 gen(rd());
 	std::uniform_real_distribution<> dis(0, 1);
 	do {
 		auto solution1 = destruction_construction(this->instance, initial_solution, d);
