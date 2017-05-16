@@ -3,6 +3,7 @@
 import subprocess
 import os
 from multiprocessing import Pool, cpu_count
+import json
 
 COMMAND = "./src/fssp {} {} --timeout {}"
 
@@ -26,6 +27,18 @@ def run(instance, algo, timeout=150):
         'score': score
     }
 
+
+def save(result):
+    try:
+        with open('results.json', 'r') as f:
+            all_results = json.load(f)
+    except FileNotFoundError:
+        all_results = []
+    all_results.append(result)
+    with open('results.json', 'w') as f:
+        json.dump(all_results, f)
+
 if __name__ == '__main__':
     res = run('100_20_12', 'ig', 5)
+    save(res)
     print(res)
