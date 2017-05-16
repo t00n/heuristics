@@ -30,7 +30,10 @@ def run(instance, algo, timeout=150):
 
 
 def run_proxy(args):
-    return run(*args)
+    try:
+        return run(*args)
+    except Exception as e:
+        return {'error': str(e), 'args': args}
 
 
 def save(result):
