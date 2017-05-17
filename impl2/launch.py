@@ -63,19 +63,30 @@ def recup_errors():
         json.dump(data, f)
 
 
-def run50():
-    return [(i, 'ig', 30) for i in INSTANCES50] * 5 + [(i, 'genetic', 30) for i in INSTANCES50] * 5
+def run_a_lot(instances, timeout, N):
+    return [(i, 'ig', timeout) for i in instances] * N + [(i, 'genetic', timeout) for i in instances] * N
 
 
-def run100():
-    return [(i, 'ig', 150) for i in INSTANCES100] * 5 + [(i, 'genetic', 150) for i in INSTANCES100] * 5
+def first_exercise():
+    return run_a_lot(INSTANCES50, 30, 5) + run_a_lot(INSTANCES100, 150, 5)
+
+
+def second_exercise():
+    return run_a_lot(sorted(INSTANCES50)[:5], 300, 25)
+
+
+def parallelize(jobs):
+    with Pool(None) as p:
+        for res in tqdm(p.imap_unordered(run_proxy, jobs)):
+            save(res)
 
 if __name__ == '__main__':
     import sys
     if sys.argv[1] == "error":
         recup_errors()
-    else:
-        jobs = run50() + run100()
-        with Pool(None) as p:
-            for res in tqdm(p.imap_unordered(run_proxy, jobs)):
-                save(res)
+    elif sys.argv[1] == "first":
+        jobs = first_exercise()
+        parallelize(jobs)
+    elif sys.argv[1] == "second":
+        jobs = second_exercise()
+        parallelize(jobs)
