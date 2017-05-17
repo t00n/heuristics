@@ -12,6 +12,8 @@
 \title{Heuristic Optimisation\\Implementation 2}
 \author{Antoine Carpentier}
 
+\setlength{\parskip}{\baselineskip}%
+\setlength{\parindent}{0pt}%
 
 \begin{document}
 
@@ -19,82 +21,111 @@
 
 \section{Introduction}
 
+In this project, we implement two stochastic local search algorithms to solve the problem of the permutation flowshop scheduling with sum weighted completion time objective. We run them on several instances of different sizes and analyse the scores of the solutions and run-time of our algorithms.
+
 \section{Algorithms}
 
-\subsection{Iterative Greedy Algorithm}
+We implement two algorithms : an Iterative Greedy Algorithm (IGA) taken from \cite{panruiz2012} and a Genetic Algorithm inspired from \cite{tseng2010genetic}.
 
-[Pan \& Ruiz, 2012]
+	\subsection{Iterative Greedy Algorithm}
 
-\subsection{Genetic Algorithm}
+	Our IGA works as follows : 
 
-\subsubsection{Initial population}
+	\begin{enumerate}
+		\item Generate an initial solution using the LR algorithm described in \cite{liu2001constructive}
+		\item Apply the iterated RZ algorithm on the initial solution
+		\item Store the initial solution as the best solution
+		\item Store the initial solution as the current solution
+		\item Repeat the following steps until $N$ seconds have passed
+		\item Destroy $d$ random jobs from the solution
+		\item Repair the solution by inserting those jobs one by one in the solution at the position that maximizes the score
+		\item Apply the iterated RZ algorithm on the solution
+		\item If the score of the new solution is better than the current solution, replace the current solution by the new solution
+		\item If (9) is true and the score of the new solution is better than the best solution, replace the best solution by the new solution
+		\item If (9) is false, use simulated annealing to replace the current solution by the new solution with a probability.
+	\end{enumerate}
 
-\subsubsection{Crossover}
+	We will now describe the non-trivial steps of this algorithm. \\
 
-\subsubsection{Selection}
+	\paragraph{} The iterated RZ algorithm use in steps (2) and (8) applies the RZ algorithm described in \cite{rajendran1997efficient} until the solution stops changing because it is a local optimum.
 
-\subsubsection{Mutation}
+	\paragraph{} The value of the $d$ parameter of step (6) was taken from \cite{panruiz2012} and we obtained good results with it.
+
+	\paragraph{} Step (7) uses a greedy algorithm to maximize the score of the solution each time a job is added.
+
+	\paragraph{} Step (11) uses simulated annealing with a fixed temperature defined as
+	$$ t = \lambda \frac{\sum_{j=1}^{n}\sum_{i=1}^{m}p_{ij}}{10mn} $$ where $\lambda$ is a parameter, $n$ is the number of jobs, $m$ is the number of machines and $p_{ij}$ is the time needed by job $j$ on machine $i$. \\
+	The probability of keeping the new solution if it is worse is defined as 
+	$$ p = e^{\frac{score of current solution - score of new solution}{t}}$$
+
+	\subsection{Genetic Algorithm}
+
+		\subsubsection{Initial population}
+
+		\subsubsection{Crossover}
+
+		\subsubsection{Selection}
+
+		\subsubsection{Mutation}
 
 \section{Results}
 
-\subsection{Average percentage deviation}
+	\subsection{Average percentage deviation}
 
-\subsubsection{By instance}
+		\subsubsection{By instance}
 
-\cite{main}
-
-\begin{figure}[H]
-	\centering
-	\caption{Average percentage deviation from best known solutions by instance}
-	\includegraphics[width=.8\textwidth]{apd_algo_instance.png}
-\end{figure}
+		\begin{figure}[H]
+			\centering
+			\caption{Average percentage deviation from best known solutions by instance}
+			\includegraphics[width=.8\textwidth]{apd_algo_instance.png}
+		\end{figure}
 
 
-\begin{figure}[H]
-	\centering
-	\caption{Correlation plot between the average percentage deviation obtained by both algorithms on each instance}
-	\includegraphics[width=.8\textwidth]{correlation.png}
-\end{figure}
+		\begin{figure}[H]
+			\centering
+			\caption{Correlation plot between the average percentage deviation obtained by both algorithms on each instance}
+			\includegraphics[width=.8\textwidth]{correlation.png}
+		\end{figure}
 
 
-\subsubsection{By instance size}
+		\subsubsection{By instance size}
 
-\begin{figure}[H]
-	\centering
-	\caption{Average percentage deviation from best known solutions by instance size}
-	\includegraphics[width=.3\textwidth]{apd_algo_instance_size.png}
-\end{figure}
+		\begin{figure}[H]
+			\centering
+			\caption{Average percentage deviation from best known solutions by instance size}
+			\includegraphics[width=.3\textwidth]{apd_algo_instance_size.png}
+		\end{figure}
 
-instances size 50
-WilcoxonResult(statistic=161.0, pvalue=0.14138951131633032)
-instances size 100
-WilcoxonResult(statistic=1.0, pvalue=1.9209211049031396e-06)
+		instances size 50
+		WilcoxonResult(statistic=161.0, pvalue=0.14138951131633032)
+		instances size 100
+		WilcoxonResult(statistic=1.0, pvalue=1.9209211049031396e-06)
 
-\subsection{Running time}
+	\subsection{Running time}
 
-\begin{figure}[H]
-	\centering
-	\caption{Distribution of time needed to be close of 2\% of best known solution}
-	\includegraphics[width=.3\textwidth]{time_02.png}
-\end{figure}
+	\begin{figure}[H]
+		\centering
+		\caption{Distribution of time needed to be close of 2\% of best known solution}
+		\includegraphics[width=.3\textwidth]{time_02.png}
+	\end{figure}
 
-\begin{figure}[H]
-	\centering
-	\caption{Distribution of time needed to be close of 1\% of best known solution}
-	\includegraphics[width=.3\textwidth]{time_01.png}
-\end{figure}
+	\begin{figure}[H]
+		\centering
+		\caption{Distribution of time needed to be close of 1\% of best known solution}
+		\includegraphics[width=.3\textwidth]{time_01.png}
+	\end{figure}
 
-\begin{figure}[H]
-	\centering
-	\caption{Distribution of time needed to be close of 0.5\% of best known solution}
-	\includegraphics[width=.3\textwidth]{time_005.png}
-\end{figure}
+	\begin{figure}[H]
+		\centering
+		\caption{Distribution of time needed to be close of 0.5\% of best known solution}
+		\includegraphics[width=.3\textwidth]{time_005.png}
+	\end{figure}
 
-\begin{figure}[H]
-	\centering
-	\caption{Distribution of time needed to be close of 0.1\% of best known solution}
-	\includegraphics[width=.3\textwidth]{time_001.png}
-\end{figure}
+	\begin{figure}[H]
+		\centering
+		\caption{Distribution of time needed to be close of 0.1\% of best known solution}
+		\includegraphics[width=.3\textwidth]{time_001.png}
+	\end{figure}
 
 
 \section{Conclusion}
