@@ -45,15 +45,8 @@
 
 \begin{figure}[H]
 	\centering
-	\caption{Average percentage deviation from best known solutions}
+	\caption{Average percentage deviation from best known solutions by instance}
 	\includegraphics[width=.8\textwidth]{apd_algo_instance.png}
-\end{figure}
-
-
-\begin{figure}[H]
-	\centering
-	\caption{Average percentage deviation from best known solutions}
-	\includegraphics[width=.8\textwidth]{apd_algo_instance_size.png}
 \end{figure}
 
 
@@ -64,8 +57,13 @@
 \end{figure}
 
 
-
 \subsubsection{By instance size}
+
+\begin{figure}[H]
+	\centering
+	\caption{Average percentage deviation from best known solutions by instance size}
+	\includegraphics[width=.3\textwidth]{apd_algo_instance_size.png}
+\end{figure}
 
 instances size 50
 WilcoxonResult(statistic=161.0, pvalue=0.14138951131633032)
@@ -73,6 +71,31 @@ instances size 100
 WilcoxonResult(statistic=1.0, pvalue=1.9209211049031396e-06)
 
 \subsection{Running time}
+
+\begin{figure}[H]
+	\centering
+	\caption{Distribution of time needed to be close of 2\% of best known solution}
+	\includegraphics[width=.3\textwidth]{time_02.png}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\caption{Distribution of time needed to be close of 1\% of best known solution}
+	\includegraphics[width=.3\textwidth]{time_01.png}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\caption{Distribution of time needed to be close of 0.5\% of best known solution}
+	\includegraphics[width=.3\textwidth]{time_005.png}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\caption{Distribution of time needed to be close of 0.1\% of best known solution}
+	\includegraphics[width=.3\textwidth]{time_001.png}
+\end{figure}
+
 
 \section{Conclusion}
 
