@@ -12,7 +12,6 @@
 \title{Heuristic Optimisation\\Implementation 2}
 \author{Antoine Carpentier}
 
-\setlength{\parskip}{\baselineskip}%
 \setlength{\parindent}{0pt}%
 
 \begin{document}
@@ -78,11 +77,17 @@ We implement two algorithms : an Iterative Greedy Algorithm (IGA) taken from \ci
 
 		\subsubsection{Crossover}
 			Our crossover operator is based on the Orthogonal Arrays Crossover operator from \cite{tseng2010genetic}. Orthogonal arrays allow to find the best setting of factors in experiments. They provide a representative sample of experiments that guarantee that the combination of factors is uniformely distributed, that the levels for each factor appear the same number of times in a column and in $t$ several columns. For full explanation, the reader may refer to \cite{tseng2010genetic} or \cite{montgomery1991design}. \\
+
 			We use it here to find the best combination of segments from the two parents to create the best child. \\
+
 			First we segment the two parent solutions in $k$ parts that we choose randomly. $k$ is chosen to be 31 if the instance size is 100 and 15 if the instance size is 50 following the work of \cite{tseng2010genetic}. \\
+
 			Using the orthogonal arrays with $k$ factors and two levels for each factor, we construct several children by taking each segment from the mother if the level is 1 and the father otherwise. \\
+
 			Because it might create duplicates to take from both parents, we must repair the children. We replace every duplicate by the missing jobs in the order we find them in the mother solution. \\
+
 			We then use the Taguchi method to find the best combination of factors and create a new child that we repair. \\
+
 			We only keep the child with the best score among all the children we created.
 
 		\subsubsection{Selection}
@@ -90,40 +95,45 @@ We implement two algorithms : an Iterative Greedy Algorithm (IGA) taken from \ci
 			In the case where the child is kept and it has been $TLS$ generations without improvement, we perform an iRZ on the child to improve it. As in the original paper, we do not improve the child if it is not better than its parents in order to save computation time. We choose $TLS$ to be 5 because we obtain good results with that value.
 
 		\subsubsection{Mutation}
-			The mutation operator uses the destruction and construction method from our IGA with same value for the parameter $d$.
+			The mutation operator uses the destruction and construction method from our IGA with the same value for the parameter $d$.
 
 \section{Results}
 
+	In this section, we present the results we obtained. \\
+	First we ran every instance 5 times with each algorithm and averaged the scores for each algorithm and each instance over this 5 runs. For each instance we computed the average percentage deviation from the best known solutions and we compared it for each algorithm instance by instance and instance size by instance. Instances of size 50 ran for 30 seconds while instances of size 100 ran for 150 seconds. \\
+
+	Second we ran the first 5 instances of size 50 during 1000 and 25 times each. Over all these runs we averaged the running time needed to approach the best known solution. We compared with 4 thresholds : 2\%, 1\%, 0.5\%, 0.1\% above the best known solutions.
+
 	\subsection{Average percentage deviation}
 
-		\subsubsection{By instance}
-
 		\begin{figure}[H]
 			\centering
+			\label{apd_algo_instance}
 			\caption{Average percentage deviation from best known solutions by instance}
-			\includegraphics[width=.8\textwidth]{apd_algo_instance.png}
+			\includegraphics[width=\textwidth]{apd_algo_instance.png}
 		\end{figure}
 
+		In \ref{apd_algo_instance} we show the average percentage deviation from best known solutions by instance. It seems that the IGA performs better on instances of size 100 and that the algorithms are equivalent for instances of size 50. \\
+		To confirm this result we perform a Wilcoxon signed-rank test to compare the two algorithms on each instance size. We compute a p-value of 0.14 when comparing instances of size 50 and $1.92 * 10^{-6}$ when comparing instances of size 100. We conclude that only the results obtained on instances of size 100 are different.
 
 		\begin{figure}[H]
 			\centering
+			\label{correlation}
 			\caption{Correlation plot between the average percentage deviation obtained by both algorithms on each instance}
 			\includegraphics[width=.8\textwidth]{correlation.png}
 		\end{figure}
 
+		We come to the same conclusion when we plot the correlation between the average percentage deviation obtained by both algorithms on each instance in \ref{correlation}. We can see that most instances of size 100 are located above the line $x = y$ which shows that the IGA obtains better results while most instances of size 50 are located on the line $x = y$ so the results are approximately identical.
 
-		\subsubsection{By instance size}
 
 		\begin{figure}[H]
 			\centering
+			\label{apd_algo_instance_size}
 			\caption{Average percentage deviation from best known solutions by instance size}
 			\includegraphics[width=.3\textwidth]{apd_algo_instance_size.png}
 		\end{figure}
 
-		instances size 50
-		WilcoxonResult(statistic=161.0, pvalue=0.14138951131633032)
-		instances size 100
-		WilcoxonResult(statistic=1.0, pvalue=1.9209211049031396e-06)
+		In \ref{apd_algo_instance_size}, we see that on average both algorithms come close to 0.1\% of the best known solution.
 
 	\subsection{Running time}
 
