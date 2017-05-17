@@ -7,6 +7,7 @@
 \usepackage{graphicx}
 \usepackage{subfigure}
 \usepackage{float}
+\usepackage{natbib}
 
 \title{Heuristic Optimisation\\Implementation 2}
 \author{Antoine Carpentier}
@@ -40,10 +41,19 @@
 
 \subsubsection{By instance}
 
+\cite{main}
+
 \begin{figure}[H]
 	\centering
 	\caption{Average percentage deviation from best known solutions}
 	\includegraphics[width=.8\textwidth]{apd_algo_instance.png}
+\end{figure}
+
+
+\begin{figure}[H]
+	\centering
+	\caption{Average percentage deviation from best known solutions}
+	\includegraphics[width=.8\textwidth]{apd_algo_instance_size.png}
 \end{figure}
 
 
@@ -65,6 +75,10 @@ WilcoxonResult(statistic=1.0, pvalue=1.9209211049031396e-06)
 \subsection{Running time}
 
 \section{Conclusion}
+
+
+\bibliographystyle{apalike}
+\bibliography{biblio.bib}
 
 
 \end{document}
