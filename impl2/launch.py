@@ -72,7 +72,7 @@ def first_exercise():
 
 
 def second_exercise():
-    return run_a_lot(sorted(INSTANCES50)[:5], 300, 25)
+    return run_a_lot(sorted(INSTANCES50)[:5], 1000, 25)
 
 
 def parallelize(jobs):
